@@ -10,6 +10,64 @@
         body {
             background-image: url('fundo-enigma1.jpg'); /* Nome exato da imagem do festival de dança */
         }
+
+        /* ==========================================================================
+           ⚠️ AJUSTE DE RESPONSIVIDADE EMbutido para garantir a unificação mobile/pc
+           ========================================================================== */
+        
+        /* Container mágico: cria o scroll horizontal seguro apenas em telas menores */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;                  /* Ativa a rolagem lateral caso falte espaço */
+            -webkit-overflow-scrolling: touch; /* Suaviza o toque em sistemas iOS e Android */
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Configuração Base do Tabuleiro */
+        #tabuleiro {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #2c3e50;
+            min-width: 750px; /* Crucial: Garante que as 5 colunas mantenham tamanho legível no celular */
+        }
+
+        /* Estilo uniforme para todas as células */
+        #tabuleiro th, #tabuleiro td {
+            padding: 12px 10px;
+            text-align: center;
+            border: 1px solid #bdc3c7;
+            font-size: 1rem;
+            box-sizing: border-box;
+            vertical-align: middle;
+        }
+
+        /* Ajuste fino nos menus suspensos (Selects) injetados pelo JS */
+        #tabuleiro select {
+            width: 100%;
+            padding: 8px 4px;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            border: 1px solid #bdc3c7;
+            background-color: #ffffff;
+            color: #333333;
+            box-sizing: border-box;
+        }
+
+        /* Ajuste do container das pistas para não esmagar no celular */
+        .pistas-container {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -43,35 +101,37 @@
         </section>
 
         <section class="tabuleiro-container">
-            <table id="tabuleiro">
-                <thead>
-                    <tr>
-                        <th>Categoria</th>
-                        <th>Posição 1</th>
-                        <th>Posição 2</th>
-                        <th>Posição 3</th>
-                        <th>Posição 4</th>
-                        <th>Posição 5</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr data-categoria="Nome">
-                        <td class="categoria-header">Nome</td>
-                    </tr>
-                    <tr data-categoria="Turma">
-                        <td class="categoria-header">Turma</td>
-                    </tr>
-                    <tr data-categoria="Suco">
-                        <td class="categoria-header">Suco</td>
-                    </tr>
-                    <tr data-categoria="Cor">
-                        <td class="categoria-header">Cor</td>
-                    </tr>
-                    <tr data-categoria="Danca">
-                        <td class="categoria-header">Dança</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table id="tabuleiro">
+                    <thead>
+                        <tr>
+                            <th>Categoria</th>
+                            <th>Posição 1</th>
+                            <th>Posição 2</th>
+                            <th>Posição 3</th>
+                            <th>Posição 4</th>
+                            <th>Posição 5</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-categoria="Nome">
+                            <td class="categoria-header">Nome</td>
+                        </tr>
+                        <tr data-categoria="Turma">
+                            <td class="categoria-header">Turma</td>
+                        </tr>
+                        <tr data-categoria="Suco">
+                            <td class="categoria-header">Suco</td>
+                        </tr>
+                        <tr data-categoria="Cor">
+                            <td class="categoria-header">Cor</td>
+                        </tr>
+                        <tr data-categoria="Danca">
+                            <td class="categoria-header">Dança</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <div class="acoes">
                 <button id="btn-verificar">Verificar Respostas</button>

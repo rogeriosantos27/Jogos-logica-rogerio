@@ -73,9 +73,9 @@
             .tabuleiro-container { flex: 1.4; }
         }
 
-        /* 🎨 CORREÇÃO: Blocos brancos 100% opacos, exatamente como na sua imagem */
+        /* 🎨 CORREÇÃO DEFINITIVA: Blocos brancos 100% opacos e sólidos (Sem transparência) */
         .pistas-container, .tabuleiro-container {
-            background-color: #ffffff !important; /* Branco sólido, sem transparência */
+            background-color: #ffffff !important; /* Sólido puro */
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
@@ -94,7 +94,7 @@
             gap: 10px;
         }
 
-        /* 📱 SUPORTE RESPONSIVO PARA A TABELA */
+        /* 📱 SUPORTE RESPONSIVO PARA A TABELA (Racha Cuca Style) */
         .table-wrapper {
             width: 100%;
             overflow-x: auto;
@@ -143,6 +143,7 @@
             color: #333333;
             box-sizing: border-box;
             outline: none;
+            cursor: pointer;
         }
 
         /* Customização dos itens da lista de pistas */
@@ -155,7 +156,7 @@
         #lista-pistas li {
             background-color: #ffffff;
             border: 1px solid #e2e8f0;
-            border-left: 4px solid #3498db; /* Detalhe azul lateral charmoso */
+            border-left: 4px solid #3498db; /* Detalhe em azul na borda esquerda */
             padding: 12px 15px;
             margin-bottom: 12px;
             border-radius: 6px;

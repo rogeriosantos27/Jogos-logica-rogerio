@@ -3,142 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enigma 2: Mostra Coreográfica</title>
+    <title>Enigma 1: O Mistério das Alunas</title>
     <link rel="stylesheet" href="style.css">
 
     <style>
         body {
-            background-image: url('fundo-enigma1.jpg'); /* Nome exato da imagem do festival de dança */
+            /* 🏞️ O SEGREDO DO FUNDO ADAPTÁVEL: Perfeito em PC e Celular */
+            background-image: url('fundo-enigma1.jpg'); 
+            background-size: cover;             /* Cobre a tela inteira sem distorcer */
+            background-position: center center; /* Mantém o centro da imagem sempre visível */
+            background-attachment: fixed;       /* Deixa o fundo fixo ao rolar a página */
+            background-repeat: no-repeat;
+            margin: 0;
+            font-family: Arial, sans-serif;
         }
 
-        /* ==========================================================================
-           ⚠️ AJUSTE DE RESPONSIVIDADE EMbutido para garantir a unificação mobile/pc
-           ========================================================================== */
-        
-        /* Container mágico: cria o scroll horizontal seguro apenas em telas menores */
-        .table-container {
-            width: 100%;
-            overflow-x: auto;                  /* Ativa a rolagem lateral caso falte espaço */
-            -webkit-overflow-scrolling: touch; /* Suaviza o toque em sistemas iOS e Android */
-            margin: 20px 0;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-        }
-
-        /* Configuração Base do Tabuleiro */
-        #tabuleiro {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: rgba(255, 255, 255, 0.95);
-            color: #2c3e50;
-            min-width: 750px; /* Crucial: Garante que as 5 colunas mantenham tamanho legível no celular */
-        }
-
-        /* Estilo uniforme para todas as células */
-        #tabuleiro th, #tabuleiro td {
-            padding: 12px 10px;
-            text-align: center;
-            border: 1px solid #bdc3c7;
-            font-size: 1rem;
-            box-sizing: border-box;
-            vertical-align: middle;
-        }
-
-        /* Ajuste fino nos menus suspensos (Selects) injetados pelo JS */
-        #tabuleiro select {
-            width: 100%;
-            padding: 8px 4px;
-            font-size: 0.95rem;
-            border-radius: 6px;
-            border: 1px solid #bdc3c7;
-            background-color: #ffffff;
-            color: #333333;
-            box-sizing: border-box;
-        }
-
-        /* Ajuste do container das pistas para não esmagar no celular */
-        .pistas-container {
-            width: 100%;
-            box-sizing: border-box;
+        /* Garante que NENHUMA imagem dentro do jogo fique esticada */
+        img {
+            max-width: 100%;
+            height: auto;
+            object-fit: contain; 
         }
 
         .container {
             width: 100%;
-            max-width: 1200px;
-            padding: 10px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 15px;
             box-sizing: border-box;
+        }
+
+        /* Layout em duas colunas no PC, vira uma coluna no Celular */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (min-width: 900px) {
+            .main-content {
+                flex-direction: row; /* Lado a lado no computador */
+                align-items: flex-start;
+            }
+            .pistas-container { flex: 1; }
+            .tabuleiro-container { flex: 1.2; }
+        }
+
+        /* Estilização dos blocos (Pistas e Tabuleiro) */
+        .pistas-container, .tabuleiro-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            color: #2c3e50;
+            box-sizing: border-box;
+        }
+
+        /* 📱 ROLAGEM DA TABELA IGUAL AO RACHA CUCA */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;                  /* Ativa o scroll se a tela for pequena */
+            -webkit-overflow-scrolling: touch; /* Rolagem lisa no celular */
+            border-radius: 8px;
+            border: 1px solid #bdc3c7;
+            margin-bottom: 20px;
+        }
+
+        #tabuleiro {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px; /* Garante que a tabela não esmague no mobile */
+        }
+
+        #tabuleiro th, #tabuleiro td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid #bdc3c7;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        .categoria-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        /* Ajuste dos menus de opções (Selects) */
+        #tabuleiro select {
+            width: 100%;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #bdc3c7;
+            background-color: white;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        /* Botões e Ações */
+        .acoes {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        #btn-verificar {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        #btn-verificar:hover {
+            background-color: #219653;
+            transform: scale(1.03);
+        }
+
+        /* Lista de Pistas */
+        #lista-pistas {
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+
+        #lista-pistas li {
+            margin-bottom: 8px;
+            font-size: 1rem;
         }
     </style>
 </head>
 <body>
 
-<a href="index.html" class="btn-voltar-topo">⬅ Voltar ao Menu</a>
-    <header>
-        <h1>Desafio de Lógica: As 5 Amigas</h1>
-        <p>Use as pistas abaixo para preencher a tabela corretamente!</p>
-    </header>
+    <div class="container">
+        <a href="index.html" class="btn-voltar-topo" style="display: inline-block; margin-bottom: 15px; color: white; text-decoration: none; font-weight: bold;">⬅ Voltar ao Menu</a>
+        
+        <header style="text-align: center; color: white; margin-bottom: 25px; text-shadow: 2px 2px 4px rgba(0,0,0,0.6);">
+            <h1 style="color: #f1c40f; margin-bottom: 5px;">Desafio de Lógica: As 5 Amigas</h1>
+            <p style="margin: 0; font-size: 1.1rem;">Use as pistas abaixo para preencher a tabela corretamente!</p>
+        </header>
 
-    <main class="container">
-        <section class="pistas-container">
-            <h2>🔍 Pistas</h2>
-            <ul id="lista-pistas">
-                <li id="pista-1">1. A garota que veste <strong>Verde</strong> está na primeira posição.</li>
-                <li id="pista-2">2. <strong>Julia</strong> está sentada exatamente à esquerda de <strong>Isabelly</strong>.</li>
-                <li id="pista-3">3. A aluna da <strong>INT-5</strong> está exatamente no meio.</li>
-                <li id="pista-4">4. A menina de <strong>Amarelo</strong> está sentada exatamente à direita da que bebe suco de <strong>Goiaba</strong>.</li>
-                <li id="pista-5">5. A garota que dança <strong>Jazz</strong> veste <strong>Rosa</strong>.</li>
-                <li id="pista-6">6. <strong>Ana Clara</strong> está ao lado da garota da turma <strong>INT-2</strong>.</li>
-                <li id="pista-7">7. A menina que bebe suco de <strong>Uva</strong> estuda na <strong>INT-4</strong>.</li>
-                <li id="pista-8">8. Quem gosta de <strong>Força</strong> está em algum lugar à esquerda de quem gosta de <strong>Flex</strong>.</li>
-                <li id="pista-9">9. <strong>Cecilia</strong> bebe suco de <strong>Maracujá</strong>.</li>
-                <li id="pista-10">10. A garota de <strong>Azul</strong> treina dança <strong>Classico</strong>.</li>
-                <li id="pista-11">11. A menina que estuda na <strong>INT-1</strong> bebe suco de <strong>Laranja</strong>.</li>
-                <li id="pista-12">12. A aluna de <strong>Vermelho</strong> gosta de <strong>Coreografia</strong>.</li>
-                <li id="pista-13">13. <strong>Raquele</strong> está ao lado da menina que dança <strong>Flex</strong>.</li>
-                <li id="pista-14">14. A aluna da turma <strong>INT-3</strong> está na última posição.</li>
-                <li id="pista-15">15. A menina que bebe suco de <strong>Laranja</strong> está sentada em algum lugar entre a de <strong>Verde</strong> e a de <strong>Rosa</strong>, exatamente nessa ordem.</li>
-            </ul>
-        </section>
+        <main class="main-content">
+            <section class="pistas-container">
+                <h2>🔍 Pistas</h2>
+                <ul id="lista-pistas">
+                    <li id="pista-1">1. A garota que veste <strong>Verde</strong> está na primeira posição.</li>
+                    <li id="pista-2">2. <strong>Julia</strong> está sentada exatamente à esquerda de <strong>Isabelly</strong>.</li>
+                    <li id="pista-3">3. A aluna da <strong>INT-5</strong> está exatamente no meio.</li>
+                    <li id="pista-4">4. A menina de <strong>Amarelo</strong> está sentada exatamente à direita da que bebe suco de <strong>Goiaba</strong>.</li>
+                    <li id="pista-5">5. A garota que dança <strong>Jazz</strong> veste <strong>Rosa</strong>.</li>
+                    <li id="pista-6">6. <strong>Ana Clara</strong> está ao lado da garota da turma <strong>INT-2</strong>.</li>
+                    <li id="pista-7">7. A menina que bebe suco de <strong>Uva</strong> estuda na <strong>INT-4</strong>.</li>
+                    <li id="pista-8">8. Quem gosta de <strong>Força</strong> está em algum lugar à esquerda de quem gosta de <strong>Flex</strong>.</li>
+                    <li id="pista-9">9. <strong>Cecilia</strong> bebe suco de <strong>Maracujá</strong>.</li>
+                    <li id="pista-10">10. A garota de <strong>Azul</strong> treina dança <strong>Classico</strong>.</li>
+                    <li id="pista-11">11. A menina que estuda na <strong>INT-1</strong> bebe suco de <strong>Laranja</strong>.</li>
+                    <li id="pista-12">12. A aluna de <strong>Vermelho</strong> gosta de <strong>Coreografia</strong>.</li>
+                    <li id="pista-13">13. <strong>Raquele</strong> está ao lado da menina que dança <strong>Flex</strong>.</li>
+                    <li id="pista-14">14. A aluna da turma <strong>INT-3</strong> está na última posição.</li>
+                    <li id="pista-15">15. A menina que bebe suco de <strong>Laranja</strong> está sentada em algum lugar entre a de <strong>Verde</strong> e a de <strong>Rosa</strong>, exatamente nessa ordem.</li>
+                </ul>
+            </section>
 
-        <section class="tabuleiro-container">
-            <div class="table-container">
-                <table id="tabuleiro">
-                    <thead>
-                        <tr>
-                            <th>Categoria</th>
-                            <th>Posição 1</th>
-                            <th>Posição 2</th>
-                            <th>Posição 3</th>
-                            <th>Posição 4</th>
-                            <th>Posição 5</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr data-categoria="Nome">
-                            <td class="categoria-header">Nome</td>
-                        </tr>
-                        <tr data-categoria="Turma">
-                            <td class="categoria-header">Turma</td>
-                        </tr>
-                        <tr data-categoria="Suco">
-                            <td class="categoria-header">Suco</td>
-                        </tr>
-                        <tr data-categoria="Cor">
-                            <td class="categoria-header">Cor</td>
-                        </tr>
-                        <tr data-categoria="Danca">
-                            <td class="categoria-header">Dança</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <section class="tabuleiro-container">
+                <h2>📋 Respostas</h2>
+                <div class="table-wrapper">
+                    <table id="tabuleiro">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Posição 1</th>
+                                <th>Posição 2</th>
+                                <th>Posição 3</th>
+                                <th>Posição 4</th>
+                                <th>Posição 5</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-categoria="Nome">
+                                <td class="categoria-header">Nome</td>
+                            </tr>
+                            <tr data-categoria="Turma">
+                                <td class="categoria-header">Turma</td>
+                            </tr>
+                            <tr data-categoria="Suco">
+                                <td class="categoria-header">Suco</td>
+                            </tr>
+                            <tr data-categoria="Cor">
+                                <td class="categoria-header">Cor</td>
+                            </tr>
+                            <tr data-categoria="Danca">
+                                <td class="categoria-header">Dança</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-            <div class="acoes">
-                <button id="btn-verificar">Verificar Respostas</button>
-                <p id="mensagem-resultado"></p>
-            </div>
-        </section>
-    </main>
+                <div class="acoes">
+                    <button id="btn-verificar">Verificar Respostas</button>
+                    <p id="mensagem-resultado" style="margin-top: 15px; font-weight: bold;"></p>
+                </div>
+            </section>
+        </main>
+    </div>
 
     <script src="script.js"></script>
 </body>

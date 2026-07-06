@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quiz Mostra Coreografica</title>
     <style>
         /* Reset básico */
@@ -13,44 +13,44 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        /* Libera a rolagem vertical e garante altura mínima */
         body, html {
-            height: 100%;
-            overflow: hidden;
+            min-height: 100vh;
             background-color: #000;
         }
 
-        /* Container Principal com Imagem de Fundo Dinâmica */
+        /* Container Principal com adaptação para rolagem */
         #quiz-container {
+            min-height: 100vh;
             width: 100%;
-            height: 100%;
             background-position: center;
             background-size: cover;
             background-repeat: no-repeat;
+            background-attachment: fixed; /* O fundo fica fixo enquanto o conteúdo rola */
             position: relative;
             transition: background-image 0.5s ease-in-out;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 5vh 5%; /* Garante espaço nas bordas em telas pequenas */
         }
 
-        /* Camada escura de transparência para dar contraste ao texto */
+        /* Camada escura de transparência fixa na tela toda */
         #overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background-color: rgba(0, 0, 0, 0.55);
             z-index: 1;
         }
 
-        /* Moldura tracejada idêntica ao layout */
+        /* Moldura tracejada flexível (cresce junto com o texto) */
         #inner-frame {
-            position: absolute;
-            top: 5%;
-            left: 5%;
-            width: 90%;
-            height: 90%;
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
             border: 2px dashed rgba(255, 255, 255, 0.7);
             z-index: 2;
             display: flex;
@@ -59,11 +59,12 @@
             align-items: center;
             padding: 40px;
             text-align: center;
+            background-color: rgba(0, 0, 0, 0.2); /* Leve escurecimento extra dentro da caixa para leitura */
+            border-radius: 8px;
         }
 
-        /* Caixa de conteúdo do Quiz */
+        /* Caixa de conteúdo */
         #content-box {
-            max-width: 900px;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -74,10 +75,10 @@
         /* Texto da Pergunta */
         #question-text {
             color: #ffffff;
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 700;
             line-height: 1.4;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
         }
 
@@ -87,9 +88,9 @@
             flex-direction: row;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         /* Estilo Ghost Button para as respostas */
@@ -100,13 +101,14 @@
             color: #ffffff;
             font-size: 1.2rem;
             font-weight: 600;
-            padding: 15px 30px;
+            padding: 15px 25px;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-width: 160px;
+            flex: 1 1 auto;
+            min-width: 200px; /* Garante tamanho legível */
         }
 
         .alternative-btn:hover:not(.disabled) {
@@ -115,7 +117,7 @@
             transform: scale(1.02);
         }
 
-        /* Ícones de feedback visual (Check/Xis) */
+        /* Ícones de feedback visual */
         .feedback-icon {
             margin-right: 10px;
             font-weight: bold;
@@ -138,10 +140,10 @@
         .disabled {
             cursor: not-allowed;
             opacity: 0.8;
-            pointer-events: none; /* Bloqueia segundo clique completamente */
+            pointer-events: none;
         }
 
-        /* Botão de Avançar Pergunta (Escondido inicialmente) */
+        /* Botão de Avançar Pergunta (Ajustado para mobile) */
         #next-btn {
             display: none;
             background-color: #ffffff;
@@ -150,10 +152,11 @@
             border-radius: 4px;
             font-size: 1.2rem;
             font-weight: 700;
-            padding: 12px 30px;
+            padding: 15px 40px;
             cursor: pointer;
             transition: background-color 0.2s ease;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+            margin-top: 10px;
         }
 
         #next-btn:hover {
@@ -163,7 +166,7 @@
         /* Tela de encerramento */
         #final-title {
             color: #ffffff;
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 800;
             margin-bottom: 20px;
             text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9);
@@ -173,22 +176,47 @@
 
         #final-message {
             color: #ffffff;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 600;
             line-height: 1.6;
-            max-width: 750px;
+            max-width: 800px;
             text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
             text-align: center;
         }
 
-        /* Responsividade para telas menores */
+        /* ========================================================= */
+        /* RESPONSIVIDADE ESTRITA PARA CELULARES                     */
+        /* ========================================================= */
         @media (max-width: 768px) {
-            #question-text { font-size: 1.4rem; margin-bottom: 30px; }
-            #alternatives-container { flex-direction: column; width: 100%; }
-            .alternative-btn { width: 100%; padding: 12px; font-size: 1rem; }
-            #inner-frame { padding: 15px; }
-            #final-title { font-size: 2.5rem; }
-            #final-message { font-size: 1.3rem; }
+            #inner-frame { 
+                padding: 25px 15px; 
+                border-width: 1px; /* Deixa a borda um pouco mais leve no celular */
+            }
+            #question-text { 
+                font-size: 1.3rem; 
+                margin-bottom: 25px; 
+            }
+            #alternatives-container { 
+                flex-direction: column; /* Empilha os botões */
+                gap: 12px; 
+            }
+            .alternative-btn { 
+                width: 100%; 
+                padding: 15px; 
+                font-size: 1.1rem; 
+                min-height: 60px; /* Alvo de toque mais fácil para os dedos */
+            }
+            #next-btn { 
+                width: 100%; 
+                padding: 15px; 
+                font-size: 1.2rem; 
+            }
+            #final-title { 
+                font-size: 2.2rem; 
+            }
+            #final-message { 
+                font-size: 1.2rem; 
+            }
         }
     </style>
 </head>
@@ -275,16 +303,17 @@
         ];
 
         let currentQuestionIndex = 0;
-        let hasAnswered = false; // Trava contra cliques duplos/segunda chance
+        let hasAnswered = false; 
         
         const container = document.getElementById('quiz-container');
         const questionText = document.getElementById('question-text');
         const alternativesContainer = document.getElementById('alternatives-container');
         const nextBtn = document.getElementById('next-btn');
 
-        // Avança de tela quando clica no botão
+        // Garante que a rolagem volte para o topo ao trocar de pergunta no celular
         nextBtn.addEventListener('click', () => {
             currentQuestionIndex++;
+            window.scrollTo(0, 0); 
             loadQuestion();
         });
 
@@ -294,19 +323,17 @@
                 return;
             }
 
-            hasAnswered = false; // Libera o clique para a nova pergunta
-            nextBtn.style.display = 'none'; // Esconde o botão de avançar
+            hasAnswered = false; 
+            nextBtn.style.display = 'none'; 
 
             const currentData = quizData[currentQuestionIndex];
             
-            // Puxa a imagem sequencial (imagem1.jpg, imagem2.jpg, etc.)
             const questionNumber = currentQuestionIndex + 1;
             container.style.backgroundImage = `url('imagem${questionNumber}.jpg')`;
 
             questionText.innerHTML = currentData.question;
             alternativesContainer.innerHTML = '';
 
-            // Cria os botões de resposta
             currentData.answers.forEach(answer => {
                 const button = document.createElement('button');
                 button.classList.add('alternative-btn');
@@ -317,13 +344,11 @@
         }
 
         function checkAnswer(selectedButton, selectedAnswer, correctAnswer) {
-            // Se já respondeu, não faz mais nada (sem segunda chance)
             if (hasAnswered) return;
             hasAnswered = true; 
 
             const buttons = document.querySelectorAll('.alternative-btn');
             
-            // Desativa todos os botões garantindo que o jogador não clique novamente
             buttons.forEach(btn => {
                 btn.classList.add('disabled');
             });
@@ -335,7 +360,6 @@
                 selectedButton.classList.add('incorrect');
                 selectedButton.innerHTML = `<span class="feedback-icon">✕</span> ${selectedAnswer}`;
                 
-                // Mostra a resposta certa
                 buttons.forEach(btn => {
                     if (btn.innerText === correctAnswer) {
                         btn.classList.add('correct');
@@ -344,25 +368,25 @@
                 });
             }
 
-            // Exibe o botão para avançar só depois de responder
             nextBtn.style.display = 'block';
+            
+            // Rola suavemente para baixo para mostrar o botão no celular, caso tenha ficado oculto
+            setTimeout(() => {
+                nextBtn.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 200);
         }
 
         function showFinalScreen() {
-            // Puxa a imagem final conforme solicitado (imagem14.jpg)
             container.style.backgroundImage = "url('imagem14.jpg')";
             
-            // Limpa os elementos da pergunta
             alternativesContainer.innerHTML = '';
             questionText.style.display = 'none';
             nextBtn.style.display = 'none';
 
-            // Cria o título gigante
             const finalTitle = document.createElement('div');
             finalTitle.id = 'final-title';
             finalTitle.innerText = "QUIZ COMPLETO!";
             
-            // Cria a mensagem personalizada
             const finalMessage = document.createElement('div');
             finalMessage.id = 'final-message';
             finalMessage.innerText = "Cada passo de dança conta uma história, e cada desafio resolvido mostra o quanto você aprendeu. Continue valorizando a cultura brasileira e nunca deixe de aprender com alegria e criatividade. Parabéns!";
@@ -372,7 +396,6 @@
             contentBox.appendChild(finalMessage);
         }
 
-        // Inicia o quiz
         window.onload = loadQuestion;
     </script>
 </body>

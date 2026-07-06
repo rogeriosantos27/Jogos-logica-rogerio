@@ -7,34 +7,86 @@
     <link rel="stylesheet" href="style.css">
     <style>
         body {
-            background-image: url('fundo-enigma4.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
             margin: 0;
+            padding: 0;
             font-family: Arial, sans-serif;
-            color: white;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .bg-fixo-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .bg-fixo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
         }
 
         .wrapper-jogo {
             min-height: 100vh;
-            padding: 20px;
+            padding: 20px 15px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+
+        header h1 {
+            color: #f1c40f;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        header p {
+            color: #ffffff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            font-size: 1.1rem;
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 950px) {
+            .container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .pistas-container { flex: 1; }
+            .tabuleiro-container-wrapper { flex: 1.4; }
+        }
+
+        .pistas-container, .tabuleiro-container-wrapper {
+            background-color: transparent !important;
+            padding: 10px;
             box-sizing: border-box;
         }
 
-        /* Ajuste do container de pistas igual ao do Jogo 2 */
-        .pistas-container {
-            margin-bottom: 30px;
-        }
-
-        .pistas-container h2 {
-            display: inline-block;
-            background: white;
-            color: #2c3e50;
-            padding: 8px 20px;
-            border-radius: 8px;
-            font-size: 1.4rem;
-            margin-bottom: 15px;
+        .pistas-container h2, .tabuleiro-container-wrapper h2 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #f1c40f; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .pistas-container ul {
@@ -46,58 +98,76 @@
             gap: 10px;
         }
 
-        /* Linhas de pista estilizadas como caixas/blocos individuais do Jogo 2 */
         .pistas-container li {
-            background-color: rgba(255, 255, 255, 0.85);
-            color: #333;
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            color: #2c3e50 !important;
             padding: 15px 20px;
             border-radius: 8px;
-            font-size: 1.05rem;
+            font-size: 1rem;
+            line-height: 1.5;
             font-weight: 500;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            border-left: 5px solid #8e44ad;
             transition: all 0.3s ease;
         }
 
-        /* Estilos de validação mantendo a estrutura do bloco */
-        .pistas-container li.pista-certa {
-            background-color: rgba(46, 204, 113, 0.2) !important;
-            color: #27ae60 !important;
-            text-decoration: line-through;
-            opacity: 0.7;
-            border-left: 5px solid #2ecc71;
-        }
-
+        /* 🔴 Pista Errada -> Vermelho vivo com alto contraste */
         .pistas-container li.pista-errada {
-            background-color: rgba(231, 76, 60, 0.15) !important;
+            background-color: rgba(242, 38, 19, 0.2) !important;
             color: #c0392b !important;
-            font-weight: bold;
-            border-left: 5px solid #e74c3c;
+            font-weight: bold !important;
+            border-left: 5px solid #e74c3c !important;
         }
 
-        /* Estrutura da Tabela */
+        /* ⚪ Pista Certa -> Cinza e Riscada */
+        .pistas-container li.pista-certa {
+            background-color: rgba(220, 224, 230, 0.85) !important; 
+            color: #7f8c8d !important;
+            text-decoration: line-through !important;
+            border-left: 5px solid #bdc3c7 !important;
+            opacity: 0.6 !important;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
         table {
             width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        th, td {
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            text-align: center;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 750px;
+            background-color: transparent !important;
         }
 
         th {
             background-color: #2c3e50;
             color: #f1c40f;
+            font-weight: bold;
+            padding: 14px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        td {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            font-size: 0.95rem;
+            color: #1a252f;
+            font-weight: bold;
         }
 
         .categoria-header {
             font-weight: bold;
-            background-color: rgba(0, 0, 0, 0.4);
+            background-color: rgba(240, 244, 248, 0.95) !important;
+            color: #2c3e50 !important;
             text-align: left;
+            width: 120px;
         }
 
         select {
@@ -105,16 +175,20 @@
             border-radius: 4px;
             width: 95%;
             font-weight: bold;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            color: #333333;
+            outline: none;
+            cursor: pointer;
         }
 
-        /* CLASSES COM CORES BEM VIVAS E FORTES PARA A COLUNA INTEIRA */
+        /* Tonalidades de colunas de fundo quando selecionada a Camisa */
         .coluna-cor-roxo { background-color: #8e44ad !important; color: white !important; }
         .coluna-cor-marrom { background-color: #8b4513 !important; color: white !important; }
         .coluna-cor-azul { background-color: #2980b9 !important; color: white !important; }
         .coluna-cor-rosa { background-color: #ff69b4 !important; color: white !important; }
         .coluna-cor-branco { background-color: #ffffff !important; color: black !important; }
 
-        /* Estilo dos selects dependendo da cor da coluna */
         .coluna-cor-roxo select, .coluna-cor-marrom select, .coluna-cor-azul select, .coluna-cor-rosa select {
             color: white;
             background-color: rgba(0, 0, 0, 0.2);
@@ -125,14 +199,57 @@
         }
 
         option { color: #000 !important; background-color: #fff !important; }
+
+        .acoes {
+            text-align: center;
+            margin-top: 25px;
+            width: 100%;
+        }
+
+        #btn-verificar {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        #btn-verificar:hover {
+            background-color: #219653;
+            transform: scale(1.02);
+        }
+
+        #mensagem-resultado {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .btn-voltar-topo {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+        }
     </style>
 </head>
 <body>
 
-    <a href="index.html" class="btn-voltar-topo">⬅ Voltar ao Menu</a>
+    <div class="bg-fixo-container">
+        <img src="fundo-enigma4.jpg" alt="Fundo Show de Talentos">
+    </div>
     
     <div class="wrapper-jogo">
         <header>
+            <a href="index.html" class="btn-voltar-topo">⬅ Voltar ao Menu</a>
             <h1>🎤 Enigma 4: Show de Talentos</h1>
             <p>Descubra a ordem correta das candidatas associando cada uma à sua camisa, nome, talento, idade, fruta e prato favoritos!</p>
         </header>
@@ -140,7 +257,7 @@
         <div class="container">
             <div class="pistas-container">
                 <h2>🔍 Pistas do Show de Talentos</h2>
-                <ul>
+                <ul id="lista-pistas">
                     <li id="pista-1">1. A candidata que gosta de Lasanha está em algum lugar entre quem tem 22 anos e quem gosta de Almôndega, nessa ordem.</li>
                     <li id="pista-2">2. Na quarta posição está quem gosta de Lasanha.</li>
                     <li id="pista-3">3. A candidata que gosta de Macarronada está na segunda posição.</li>
@@ -158,39 +275,42 @@
                     <li id="pista-15">15. Quem gosta de Macarronada está exatamente à direita de quem faz Imitação.</li>
                     <li id="pista-16">16. A Cantora está em uma das pontas.</li>
                     <li id="pista-17">17. Kamila está em algum lugar à direita da candidata de Marrom.</li>
-                    <li id="pista-18">18. Ludmyla está exatamente à esquerda da candidata de 27 anos.</li>
+                    <li id="pista-18">18. Ludmyla está exatamente à esquerda della candidata de 27 anos.</li>
                     <li id="pista-19">19. Mary está com a camisa Azul.</li>
                     <li id="pista-20">20. A candidata que gosta de Abacaxi está exatamente à direita de quem gosta de Feijoada.</li>
                     <li id="pista-21">21. A Música está de Marrom.</li>
                 </ul>
             </div>
 
-            <div class="tabuleiro-container">
-                <table id="tabuleiro">
-                    <thead>
-                        <tr>
-                            <th>Categoria</th>
-                            <th>1ª Posição</th>
-                            <th>2ª Posição</th>
-                            <th>3ª Posição</th>
-                            <th>4ª Posição</th>
-                            <th>5ª Posição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr data-categoria="Camisa"><td class="categoria-header">Camisa</td></tr>
-                        <tr data-categoria="Nome"><td class="categoria-header">Nome</td></tr>
-                        <tr data-categoria="Talento"><td class="categoria-header">Talento</td></tr>
-                        <tr data-categoria="Idade"><td class="categoria-header">Idade</td></tr>
-                        <tr data-categoria="Fruta"><td class="categoria-header">Fruta</td></tr>
-                        <tr data-categoria="Prato"><td class="categoria-header">Prato</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <div class="tabuleiro-container-wrapper">
+                <h2>📋 Tabela de Respostas</h2>
+                <div class="table-wrapper">
+                    <table id="tabuleiro">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>1ª Posição</th>
+                                <th>2ª Posição</th>
+                                <th>3ª Posição</th>
+                                <th>4ª Posição</th>
+                                <th>5ª Posição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-categoria="Camisa"><td class="categoria-header">Camisa</td></tr>
+                            <tr data-categoria="Nome"><td class="categoria-header">Nome</td></tr>
+                            <tr data-categoria="Talento"><td class="categoria-header">Talento</td></tr>
+                            <tr data-categoria="Idade"><td class="categoria-header">Idade</td></tr>
+                            <tr data-categoria="Fruta"><td class="categoria-header">Fruta</td></tr>
+                            <tr data-categoria="Prato"><td class="categoria-header">Prato</td></tr>
+                        </tbody>
+                    </table>
+                </div>
 
-            <div class="acoes">
-                <button id="btn-verificar">Verificar Respostas</button>
-                <div id="mensagem-resultado"></div>
+                <div class="acoes">
+                    <button id="btn-verificar">Verificar Respostas</button>
+                    <div id="mensagem-resultado"></div>
+                </div>
             </div>
         </div>
     </div>

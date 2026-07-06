@@ -1,274 +1,227 @@
-const opcoes = {
-    Camisa: ["", "Roxo", "Marrom", "Azul", "Rosa", "Branco"],
-    Nome: ["", "Ruth", "Mary", "Kamila", "Ludmyla", "Laysa"],
-    Talento: ["", "Canto", "Dança", "Malabarismo", "Imitação", "Música"],
-    Idade: ["", "22", "27", "24", "19", "30"],
-    Fruta: ["", "Abacaxi", "Banana", "Maçã", "Uva", "Morango"],
-    Prato: ["", "Lasanha", "Almôndega", "Macarronada", "Pratinho", "Feijoada"]
-};
-
-const gabarito = {
-    1: { Camisa: "Rosa", Nome: "Ludmyla", Talento: "Imitação", Idade: "22", Fruta: "Morango", Prato: "Feijoada" },
-    2: { Camisa: "Branco", Nome: "Ruth", Talento: "Dança", Idade: "27", Fruta: "Abacaxi", Prato: "Macarronada" },
-    3: { Camisa: "Marrom", Nome: "Laysa", Talento: "Música", Idade: "19", Fruta: "Maçã", Prato: "Pratinho" },
-    4: { Camisa: "Azul", Nome: "Mary", Talento: "Malabarismo", Idade: "30", Fruta: "Banana", Prato: "Lasanha" },
-    5: { Camisa: "Roxo", Nome: "Kamila", Talento: "Canto", Idade: "24", Fruta: "Uva", Prato: "Almôndega" }
-};
-
 document.addEventListener("DOMContentLoaded", () => {
-    gerarTabuleiro();
-    document.getElementById("btn-verificar").addEventListener("click", verificarFimDeJogo);
-});
+    // Banco de dados de opções para preencher a tabela dinamicamente
+    const valoresPorCategoria = {
+        "Camisa": ["Azul", "Branco", "Marrom", "Rosa", "Roxo"],
+        "Nome": ["Kamila", "Ludmyla", "Mary", "Ruth", "Danielle"],
+        "Talento": ["Cantora", "Imitação", "Malabarista", "Música", "Dança"],
+        "Idade": ["22 anos", "24 anos", "27 anos", "30 anos", "25 anos"],
+        "Fruta": ["Abacaxi", "Maçã", "Morango", "Uva", "Banana"],
+        "Prato": ["Almôndega", "Feijoada", "Lasanha", "Macarronada", "Pratinho"]
+    };
 
-function gerarTabuleiro() {
-    const lines = document.querySelectorAll("#tabuleiro tbody tr");
-    lines.forEach(linha => {
+    // Gabarito do Enigma 4 para validação do botão final
+    const gabarito = {
+        "Camisa": ["Marrom", "Roxo", "Azul", "Branco", "Rosa"],
+        "Nome": ["Ludmyla", "Kamila", "Mary", "Ruth", "Danielle"],
+        "Talento": ["Música", "Imitação", "Malabarista", "Cantora", "Dança"],
+        "Idade": ["24 anos", "27 anos", "30 anos", "22 anos", "25 anos"],
+        "Fruta": ["Uva", "Banana", "Morango", "Abacaxi", "Maçã"],
+        "Prato": ["Almôndega", "Macarronada", "Pratinho", "Lasanha", "Feijoada"]
+    };
+
+    const tabela = document.getElementById("tabuleiro");
+    const linhas = tabela.querySelectorAll("tbody tr");
+
+    // --- RENDERIZAÇÃO DA TABELA (CONSERTA O SUMIÇO) ---
+    linhas.forEach(linha => {
         const categoria = linha.getAttribute("data-categoria");
-        const listaOpcoes = opcoes[categoria];
+        const opcoes = valoresPorCategoria[categoria] || [];
+
         for (let i = 1; i <= 5; i++) {
             const td = document.createElement("td");
-            td.setAttribute("data-col", i);
-            
             const select = document.createElement("select");
             select.setAttribute("data-posicao", i);
-            select.setAttribute("data-categoria", categoria);
             
-            listaOpcoes.forEach(opcao => {
-                const option = document.createElement("option");
-                option.value = opcao;
-                option.textContent = opcao === "" ? "---" : opcao;
-                select.appendChild(option);
+            const optDefault = document.createElement("option");
+            optDefault.value = "";
+            optDefault.textContent = "Selecione...";
+            select.appendChild(optDefault);
+
+            opcoes.forEach(opcao => {
+                const opt = document.createElement("option");
+                opt.value = opcao;
+                opt.textContent = opcao;
+                select.appendChild(opt);
             });
-            
-            select.addEventListener("change", processarMudanca);
+
             if (categoria === "Camisa") {
-                select.addEventListener("change", colorirColuna);
+                select.addEventListener("change", (e) => atualizarCorColuna(i, e.target.value));
             }
-            
+
             td.appendChild(select);
             linha.appendChild(td);
         }
     });
-}
 
-function colorirColuna(event) {
-    const select = event.target;
-    const posicao = select.getAttribute("data-posicao");
-    const corSelecionada = select.value.toLowerCase();
-    
-    const celulasColuna = document.querySelectorAll(`#tabuleiro tbody td[data-col='${posicao}']`);
-    
-    celulasColuna.forEach(td => {
-        td.classList.remove('coluna-cor-roxo', 'coluna-cor-marrom', 'coluna-cor-azul', 'coluna-cor-rosa', 'coluna-cor-branco');
-        if (corSelecionada && corSelecionada !== "") {
-            td.classList.add(`coluna-cor-${corSelecionada}`);
-        }
-    });
-}
-
-function processarMudanca() {
-    const estado = obterEstadoAtual();
-    validarPistas(estado);
-}
-
-function obterEstadoAtual() {
-    const estado = {};
-    for (let i = 1; i <= 5; i++) {
-        estado[i] = { Camisa: "", Nome: "", Talento: "", Idade: "", Fruta: "", Prato: "" };
+    // Função visual das colunas coloridas
+    function atualizarCorColuna(posicao, cor) {
+        const linhasTabela = tabela.querySelectorAll("tbody tr");
+        linhasTabela.forEach(linha => {
+            const td = linha.querySelectorAll("td")[posicao];
+            if (td) {
+                td.classList.remove("coluna-cor-roxo", "coluna-cor-marrom", "coluna-cor-azul", "coluna-cor-rosa", "coluna-cor-branco");
+                if (cor === "Roxo") td.classList.add("coluna-cor-roxo");
+                if (cor === "Marrom") td.classList.add("coluna-cor-marrom");
+                if (cor === "Azul") td.classList.add("coluna-cor-azul");
+                if (cor === "Rosa") td.classList.add("coluna-cor-rosa");
+                if (cor === "Branco") td.classList.add("coluna-cor-branco");
+            }
+        });
     }
-    const selects = document.querySelectorAll("#tabuleiro select");
-    selects.forEach(select => {
-        const pos = select.getAttribute("data-posicao");
-        const cat = select.getAttribute("data-categoria");
-        estado[pos][cat] = select.value;
-    });
-    return estado;
-}
 
-function validarPistas(estado) {
-    const statusPistas = {}; 
-    for (let i = 1; i <= 21; i++) statusPistas[i] = 'neutro';
+    function getVal(categoria, posicao) {
+        const linha = document.querySelector(`tr[data-categoria="${categoria}"]`);
+        if (!linha) return "";
+        const select = linha.querySelector(`select[data-posicao="${posicao}"]`);
+        return select ? select.value : "";
+    }
 
-    const encontrarPos = (categoria, valor) => {
+    function findPos(categoria, valor) {
         for (let i = 1; i <= 5; i++) {
-            if (estado[i][categoria] === valor) return i;
+            if (getVal(categoria, i) === valor) return i;
         }
-        return null;
-    };
-
-    const contradiz = (pos, categoria, valorEsperado) => {
-        return estado[pos][categoria] !== "" && estado[pos][categoria] !== valorEsperado;
-    };
-
-    // 1. Lasanha entre 22 anos e Almôndega
-    let p22 = encontrarPos("Idade", "22"), pLas = encontrarPos("Prato", "Lasanha"), pAlm = encontrarPos("Prato", "Almôndega");
-    if (p22 && pLas && pAlm) {
-        if (p22 < pLas && pLas < pAlm) statusPistas[1] = 'sucesso';
-        else statusPistas[1] = 'erro';
+        return 0;
     }
 
-    // 2. Na quarta posição está Lasanha
-    if (estado[4]["Prato"] === "Lasanha") statusPistas[2] = 'sucesso';
-    else if (contradiz(4, "Prato", "Lasanha")) statusPistas[2] = 'erro';
-
-    // 3. Macarronada na segunda posição
-    if (estado[2]["Prato"] === "Macarronada") statusPistas[3] = 'sucesso';
-    else if (contradiz(2, "Prato", "Macarronada")) statusPistas[3] = 'erro';
-
-    // 4. Ruth exatamente à esquerda de Pratinho
-    let pRut = encontrarPos("Nome", "Ruth"), pPra = encontrarPos("Prato", "Pratinho");
-    if (pRut && pPra) {
-        if (pRut + 1 === pPra) statusPistas[4] = 'sucesso';
-        else statusPistas[4] = 'erro';
-    } else if (pRut === 5 || pPra === 1) statusPistas[4] = 'erro';
-
-    // 5. Uva gosta de Almôndega
-    let pUva = encontrarPos("Fruta", "Uva");
-    if (pUva && pAlm) {
-        if (pUva === pAlm) statusPistas[5] = 'sucesso';
-        else statusPistas[5] = 'erro';
-    }
-
-    // 6. Ruth exatamente à esquerda de Maçã
-    let pMac = encontrarPos("Fruta", "Maçã");
-    if (pRut && pMac) {
-        if (pRut + 1 === pMac) statusPistas[6] = 'sucesso';
-        else statusPistas[6] = 'erro';
-    } else if (pRut === 5 || pMac === 1) statusPistas[6] = 'erro';
-
-    // 7. Morango e Abacaxi lado a lado
-    let pMor = encontrarPos("Fruta", "Morango"), pAba = encontrarPos("Fruta", "Abacaxi");
-    if (pMor && pAba) {
-        if (Math.abs(pMor - pAba) === 1) statusPistas[7] = 'sucesso';
-        else statusPistas[7] = 'erro';
-    }
-
-    // 8. Branco ao lado de Morango
-    let pBra = encontrarPos("Camisa", "Branco");
-    if (pBra && pMor) {
-        if (Math.abs(pBra - pMor) === 1) statusPistas[8] = 'sucesso';
-        else statusPistas[8] = 'erro';
-    }
-
-    // 9. Roxa ao lado de 30 anos
-    let pRox = encontrarPos("Camisa", "Roxo"), p30 = encontrarPos("Idade", "30");
-    if (pRox && p30) {
-        if (Math.abs(pRox - p30) === 1) statusPistas[9] = 'sucesso';
-        else statusPistas[9] = 'erro';
-    }
-
-    // 10. Marrom à esquerda de 24 anos
-    let pMar = encontrarPos("Camisa", "Marrom"), p24 = encontrarPos("Idade", "24");
-    if (pMar && p24) {
-        if (pMar < p24) statusPistas[10] = 'sucesso';
-        else statusPistas[10] = 'erro';
-    }
-
-    // 11. Segunda posição tem 27 anos
-    if (estado[2]["Idade"] === "27") statusPistas[11] = 'sucesso';
-    else if (contradiz(2, "Idade", "27")) statusPistas[11] = 'erro';
-
-    // 12. 22 anos exatamente à esquerda de Ruth
-    if (p22 && pRut) {
-        if (p22 + 1 === pRut) statusPistas[12] = 'sucesso';
-        else statusPistas[12] = 'erro';
-    } else if (p22 === 5 || pRut === 1) statusPistas[12] = 'erro';
-
-    // 13. Canto exatamente à direita de Mary
-    let pCan = encontrarPos("Talento", "Canto"), pMry = encontrarPos("Nome", "Mary");
-    if (pCan && pMry) {
-        if (pMry + 1 === pCan) statusPistas[13] = 'sucesso';
-        else statusPistas[13] = 'erro';
-    } else if (pMry === 5 || pCan === 1) statusPistas[13] = 'erro';
-
-    // 14. Malabarismo exatamente à esquerda de Canto
-    let pMal = encontrarPos("Talento", "Malabarismo");
-    if (pMal && pCan) {
-        if (pMal + 1 === pCan) statusPistas[14] = 'sucesso';
-        else statusPistas[14] = 'erro';
-    } else if (pMal === 5 || pCan === 1) statusPistas[14] = 'erro';
-
-    // 15. Macarronada exatamente à direita de Imitação
-    let pImi = encontrarPos("Talento", "Imitação");
-    let pMacarr = encontrarPos("Prato", "Macarronada");
-    if (pImi && pMacarr) {
-        if (pImi + 1 === pMacarr) statusPistas[15] = 'sucesso';
-        else statusPistas[15] = 'erro';
-    }
-
-    // 16. Canto está em uma das pontas
-    if (pCan) {
-        if (pCan === 1 || pCan === 5) statusPistas[16] = 'sucesso';
-        else statusPistas[16] = 'erro';
-    }
-
-    // 17. Kamila à direita de Marrom
-    let pKam = encontrarPos("Nome", "Kamila");
-    if (pKam && pMar) {
-        if (pKam > pMar) statusPistas[17] = 'sucesso';
-        else statusPistas[17] = 'erro';
-    }
-
-    // 18. Ludmyla exatamente à esquerda de 27 anos
-    let pLud = encontrarPos("Nome", "Ludmyla"), p27 = encontrarPos("Idade", "27");
-    if (pLud && p27) {
-        if (pLud + 1 === p27) statusPistas[18] = 'sucesso';
-        else statusPistas[18] = 'erro';
-    } else if (pLud === 5 || p27 === 1) statusPistas[18] = 'erro';
-
-    // 19. Mary está de Azul
-    let pAzu = encontrarPos("Camisa", "Azul");
-    if (pMry && pAzu) {
-        if (pMry === pAzu) statusPistas[19] = 'sucesso';
-        else statusPistas[19] = 'erro';
-    }
-
-    // 20. Abacaxi exatamente à direita de Feijoada
-    let pFei = encontrarPos("Prato", "Feijoada");
-    if (pAba && pFei) {
-        if (pFei + 1 === pAba) statusPistas[20] = 'sucesso';
-        else statusPistas[20] = 'erro';
-    } else if (pFei === 5 || pAba === 1) statusPistas[20] = 'erro';
-
-    // 21. Música está de Marrom
-    let pMus = encontrarPos("Talento", "Música");
-    if (pMus && pMar) {
-        if (pMus === pMar) statusPistas[21] = 'sucesso';
-        else statusPistas[21] = 'erro';
-    }
-
-    // Atualiza o estado visual das caixas de pista tradicionais
-    for (let i = 1; i <= 21; i++) {
-        const item = document.getElementById(`pista-${i}`);
-        if(item) {
-            item.classList.remove("pista-errada", "pista-certa");
-            if (statusPistas[i] === 'erro') item.classList.add("pista-errada");
-            else if (statusPistas[i] === 'sucesso') item.classList.add("pista-certa");
+    function atualizarPistaVisual(idPista, status) {
+        const elemento = document.getElementById(`pista-${idPista}`);
+        if (!elemento) return;
+        
+        elemento.classList.remove("pista-certa", "pista-errada");
+        if (status === "certa") {
+            elemento.classList.add("pista-certa");
+        } else if (status === "errada") {
+            elemento.classList.add("pista-errada");
         }
     }
-}
 
-function verificarFimDeJogo() {
-    const selects = document.querySelectorAll("#tabuleiro select");
-    let tudoCorreto = true;
-    let preenchido = true;
+    // --- SISTEMA DE VALIDAÇÃO EM TEMPO REAL CORRIGIDO ---
+    function validarPistasEmTempoReal() {
+        
+        // Pista 5 FOCADA: Quem gosta de Uva gosta de Almôndega
+        let erroPista5 = false;
+        let preenchidoPista5 = false;
+        for (let i = 1; i <= 5; i++) {
+            const prato = getVal("Prato", i);
+            const fruta = getVal("Fruta", i);
+            if (prato === "Almôndega" && fruta !== "") {
+                preenchidoPista5 = true;
+                if (fruta !== "Uva") erroPista5 = true; // Se botou Abacaxi com Almôndega, dá ERRO!
+            }
+            if (fruta === "Uva" && prato !== "") {
+                preenchidoPista5 = true;
+                if (prato !== "Almôndega") erroPista5 = true;
+            }
+        }
+        atualizarPistaVisual(5, preenchidoPista5 ? (erroPista5 ? "errada" : "certa") : "");
 
-    selects.forEach(select => {
-        if (select.value === "") preenchido = false;
-        const pos = select.getAttribute("data-posicao");
-        const cat = select.getAttribute("data-categoria");
-        if (select.value !== gabarito[pos][cat]) tudoCorreto = false;
+        // Pista 21: A Música está de Marrom
+        let erroPista21 = false;
+        let preenchidoPista21 = false;
+        for (let i = 1; i <= 5; i++) {
+            const talento = getVal("Talento", i);
+            const camisa = getVal("Camisa", i);
+            if (talento === "Música" && camisa !== "") { preenchidoPista21 = true; if (camisa !== "Marrom") erroPista21 = true; }
+            if (camisa === "Marrom" && talento !== "") { preenchidoPista21 = true; if (talento !== "Música") erroPista21 = true; }
+        }
+        atualizarPistaVisual(21, preenchidoPista21 ? (erroPista21 ? "errada" : "certa") : "");
+
+        // Pista 2: Na quarta posição está quem gosta de Lasanha
+        const p2 = getVal("Prato", 4);
+        atualizarPistaVisual(2, p2 ? (p2 === "Lasanha" ? "certa" : "errada") : "");
+
+        // Pista 3: A candidata que gosta de Macarronada está na segunda posição
+        const p3 = getVal("Prato", 2);
+        atualizarPistaVisual(3, p3 ? (p3 === "Macarronada" ? "certa" : "errada") : "");
+
+        // Pista 11: Na segunda posição está a candidata de 27 anos
+        const p11 = getVal("Idade", 2);
+        atualizarPistaVisual(11, p11 ? (p11 === "27 anos" ? "certa" : "errada") : "");
+
+        // Pista 15: Macarronada exatamente à direita de Imitação
+        const posMacarronada = findPos("Prato", "Macarronada");
+        const posImitacao = findPos("Talento", "Imitação");
+        if (posMacarronada && posImitacao) {
+            atualizarPistaVisual(15, posMacarronada === posImitacao + 1 ? "certa" : "errada");
+        } else {
+            atualizarPistaVisual(15, "");
+        }
+
+        // Pista 18: Ludmyla exatamente à esquerda de 27 anos
+        const posLudmyla = findPos("Nome", "Ludmyla");
+        const pos27 = findPos("Idade", "27 anos");
+        if (posLudmyla && pos27) {
+            atualizarPistaVisual(18, posLudmyla === pos27 - 1 ? "certa" : "errada");
+        } else {
+            atualizarPistaVisual(18, "");
+        }
+
+        // Pista 19: Mary está com a camisa Azul
+        let erroPista19 = false;
+        let preenchidoPista19 = false;
+        for (let i = 1; i <= 5; i++) {
+            if (getVal("Nome", i) === "Mary" && getVal("Camisa", i) !== "") { preenchidoPista19 = true; if (getVal("Camisa", i) !== "Azul") erroPista19 = true; }
+            if (getVal("Camisa", i) === "Azul" && getVal("Nome", i) !== "") { preenchidoPista19 = true; if (getVal("Nome", i) !== "Mary") erroPista19 = true; }
+        }
+        atualizarPistaVisual(19, preenchidoPista19 ? (erroPista19 ? "errada" : "certa") : "");
+
+        // Pista 12: Quem tem 22 anos está exatamente à esquerda de Ruth
+        const pos22 = findPos("Idade", "22 anos");
+        const posRuth = findPos("Nome", "Ruth");
+        if (pos22 && posRuth) {
+            atualizarPistaVisual(12, pos22 === posRuth - 1 ? "certa" : "errada");
+        } else {
+            atualizarPistaVisual(12, "");
+        }
+
+        // Pista 6: Ruth exatamente à esquerda de Maçã
+        const posMaca = findPos("Fruta", "Maçã");
+        if (posRuth && posMaca) {
+            atualizarPistaVisual(6, posRuth === posMaca - 1 ? "certa" : "errada");
+        } else {
+            atualizarPistaVisual(6, "");
+        }
+
+        // Pista 4: Ruth exatamente à esquerda de Pratinho
+        const posPratinho = findPos("Prato", "Pratinho");
+        if (posRuth && posPratinho) {
+            atualizarPistaVisual(4, posRuth === posPratinho - 1 ? "certa" : "errada");
+        } else {
+            atualizarPistaVisual(4, "");
+        }
+    }
+
+    tabela.addEventListener("change", validarPistasEmTempoReal);
+
+    // Botão de verificação de vitória
+    document.getElementById("btn-verificar").addEventListener("click", () => {
+        let completo = true;
+        const selects = tabela.querySelectorAll("select");
+        selects.forEach(s => { if(s.value === "") completo = false; });
+
+        const msgContainer = document.getElementById("mensagem-resultado");
+        if (!completo) {
+            msgContainer.style.color = "#f1c40f";
+            msgContainer.textContent = "⚠️ Preencha todas as opções da tabela antes de verificar!";
+            return;
+        }
+
+        let acertos = 0;
+        let totalCampos = 0;
+        linhas.forEach(linha => {
+            const categoria = linha.getAttribute("data-categoria");
+            for (let i = 1; i <= 5; i++) {
+                totalCampos++;
+                if (getVal(categoria, i) === gabarito[categoria][i - 1]) acertos++;
+            }
+        });
+
+        if (acertos === totalCampos) {
+            msgContainer.style.color = "#2ecc71";
+            msgContainer.innerHTML = "🎉 PARABÉNS! Você solucionou o Enigma perfeitamente!";
+        } else {
+            msgContainer.style.color = "#e74c3c";
+            msgContainer.textContent = "❌ Algumas associações estão incorretas. Confira as pistas vermelhas!";
+        }
     });
-
-    const msg = document.getElementById("mensagem-resultado");
-    if (!preenchido) {
-        msg.textContent = "Preencha todo o tabuleiro antes de verificar!";
-        msg.style.color = "#ffdd57";
-    } else if (tudoCorreto) {
-        msg.textContent = "🏆 Sensacional! Você desvendou o Show de Talentos perfeitamente!";
-        msg.style.color = "#2ecc71";
-    } else {
-        msg.textContent = "❌ Algumas conexões ainda estão incorretas. Confira as pistas coloridas!";
-        msg.style.color = "#e74c3c";
-    }
-}
+});

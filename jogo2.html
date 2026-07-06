@@ -7,15 +7,219 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
+        /* Configurações básicas e zeramento de margens */
         body {
-            background-image: url('fundo-enigma2.jpg'); /* Nome exato da imagem do festival de dança */
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 🖼️ MOTOR DE FUNDO ADAPTÁVEL (Preenche sem esticar e sem travar em celulares) */
+        .bg-fixo-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .bg-fixo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        /* Container principal */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 15px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Alinhamento lado a lado no Computador */
+        @media (min-width: 950px) {
+            .container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .pistas-container { flex: 1; }
+            .tabuleiro-container-wrapper { flex: 1.4; }
+        }
+
+        /* 🎨 REMOVIDO OS FUNDOS DOS CONTÊINERES GERAIS */
+        .pistas-container, .tabuleiro-container-wrapper {
+            background-color: transparent !important;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Títulos principais em Amarelo para alto contraste no fundo */
+        header h1 {
+            color: #f1c40f;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #ffffff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            font-size: 1.1rem;
+            margin-top: 0;
+        }
+
+        .pistas-container h2, .tabuleiro-container-wrapper h2 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #f1c40f; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 📱 SUPORTE RESPONSIVO PARA A TABELA */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        #tabuleiro {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 700px;
+        }
+
+        /* 👑 CABEÇALHO DA TABELA */
+        th {
+            background-color: #2c3e50;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 14px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* 🧪 CORREÇÃO: Células da tabela com Fundo Branco Translúcido */
+        #tabuleiro td {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            font-size: 0.95rem;
+            color: #1a252f;
+            font-weight: bold;
+        }
+
+        /* Célula lateral das Categorias */
+        .categoria-header {
+            background-color: rgba(240, 244, 248, 0.95) !important;
+            color: #2c3e50 !important;
+            font-weight: bold;
+            width: 120px;
+        }
+
+        /* Menus Dropdown (Selects) integrados */
+        #tabuleiro select {
+            width: 100%;
+            padding: 8px;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            color: #333333;
+            box-sizing: border-box;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Lista de Pistas */
+        #lista-pistas {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* 🧪 CORREÇÃO: Cada linha de pista com Fundo Branco Translúcido */
+        #lista-pistas li {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #e74c3c; /* Detalhe vermelho lateral diferenciando do Enigma 1 */
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #2c3e50;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+
+        #lista-pistas li strong {
+            color: #000000;
+            font-weight: bold;
+        }
+
+        /* Botão de Verificação e Ações */
+        .acoes {
+            text-align: center;
+            margin-top: 25px;
+            width: 100%;
+        }
+
+        #btn-verificar {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        #btn-verificar:hover {
+            background-color: #219653;
+            transform: scale(1.02);
+        }
+
+        /* Botão superior Voltar */
+        .btn-voltar-topo {
+            display: inline-block;
+            margin: 20px 0 0 15px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
         }
     </style>
 </head>
 <body>
 
-<a href="index.html" class="btn-voltar-topo">⬅ Voltar ao Menu</a>
-    <header>
+    <div class="bg-fixo-container">
+        <img src="fundo-enigma2.jpg" alt="Fundo Festival de Dança">
+    </div>
+
+    <a href="index.html" class="btn-voltar-topo">⬅ Voltar ao Menu</a>
+    
+    <header style="text-align: center; padding: 10px 15px;">
         <h1>🎭 O Grande Festival de Dança</h1>
         <p>Descubra a ordem correta das apresentações associando cada aluna ao seu professor, estilo de dança, idade e figurino!</p>
     </header>
@@ -23,7 +227,7 @@
     <div class="container">
         <div class="pistas-container">
             <h2>🔍 Pistas do Festival</h2>
-            <ul>
+            <ul id="lista-pistas">
                 <li id="pista-1">1. A apresentação de Junina acontece exatamente entre a garota de 12 anos e a coreografia de Frevo, nessa ordem.</li>
                 <li id="pista-2">2. A coreografia de Funk acontece imediatamente após a apresentação de Pau de Fita.</li>
                 <li id="pista-3">3. A coreografia de Samba é apresentada imediatamente antes da vez de Camilly.</li>
@@ -42,31 +246,34 @@
             </ul>
         </div>
 
-        <div class="tabuleiro-container">
-            <table id="tabuleiro">
-                <thead>
-                    <tr>
-                        <th>Categoria</th>
-                        <th>Primeira</th>
-                        <th>Segunda</th>
-                        <th>Terceira</th>
-                        <th>Quarta</th>
-                        <th>Quinta</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr data-categoria="Professor"><td class="categoria-header">Professor</td></tr>
-                    <tr data-categoria="Nome"><td class="categoria-header">Aluna</td></tr>
-                    <tr data-categoria="Coreografia"><td class="categoria-header">Coreografia</td></tr>
-                    <tr data-categoria="Idade"><td class="categoria-header">Idade</td></tr>
-                    <tr data-categoria="Cor"><td class="categoria-header">Figurino</td></tr>
-                </tbody>
-            </table>
-        </div>
+        <div class="tabuleiro-container-wrapper">
+            <h2>📋 Tabela de Respostas</h2>
+            <div class="table-wrapper">
+                <table id="tabuleiro">
+                    <thead>
+                        <tr>
+                            <th>Categoria</th>
+                            <th>Primeira</th>
+                            <th>Segunda</th>
+                            <th>Terceira</th>
+                            <th>Quarta</th>
+                            <th>Quinta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-categoria="Professor"><td class="categoria-header">Professor</td></tr>
+                        <tr data-categoria="Nome"><td class="categoria-header">Aluna</td></tr>
+                        <tr data-categoria="Coreografia"><td class="categoria-header">Coreografia</td></tr>
+                        <tr data-categoria="Idade"><td class="categoria-header">Idade</td></tr>
+                        <tr data-categoria="Cor"><td class="categoria-header">Figurino</td></tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="acoes">
-            <button id="btn-verificar">Verificar Respostas</button>
-            <div id="mensagem-resultado"></div>
+            <div class="acoes">
+                <button id="btn-verificar">Verificar Respostas</button>
+                <div id="mensagem-resultado" style="margin-top: 15px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black;"></div>
+            </div>
         </div>
     </div>
 

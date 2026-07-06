@@ -3,137 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enigma 5: Desafio de Maracatu</title>
+    <title>Quiz Mostra Coreografica</title>
     <link rel="stylesheet" href="style.css">
     <style>
         body {
-            /* 1. IMAGEM DE FUNDO EXCLUSIVA DO JOGO 5 */
-            background-image: url('fundo-enigma5.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
             margin: 0;
+            padding: 0;
             font-family: Arial, sans-serif;
             color: white;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
         }
 
+        /* Imagem fixa cobrindo toda a tela */
+        .bg-fixo-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .bg-fixo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        /* Opção de voltar ao menu sempre visível */
+        .btn-voltar-topo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+            z-index: 10;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+
+        .btn-voltar-topo:hover {
+            transform: scale(1.05);
+        }
+
+        /* Caixa translúcida que permite visualizar o fundo, mas mantém legibilidade */
         .wrapper-quiz {
             width: 90%;
-            max-width: 800px;
-            background-color: rgba(0, 0, 0, 0.6); /* Camada escura interna para dar destaque */
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-width: 700px;
+            background-color: rgba(0, 0, 0, 0.75); /* Vidro fumê escuro para alto contraste */
+            backdrop-filter: blur(10px); /* Efeito blur no fundo */
+            -webkit-backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
             box-sizing: border-box;
+            z-index: 2;
         }
 
         header h1 {
             color: #f1c40f;
-            font-size: 2rem;
+            font-size: 2.2rem;
             margin-top: 0;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
         }
 
-        /* Container da Imagem Ilustrativa */
-        .imagem-pergunta-container {
-            width: 100%;
-            max-height: 350px;
-            overflow: hidden;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-
-        .imagem-pergunta-container img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        /* Texto da Pergunta */
         .texto-pergunta {
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             line-height: 1.6;
-            margin-bottom: 30px;
-            font-weight: 500;
+            margin-bottom: 35px;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
         }
 
-        /* Grid de Alternativas (Horizontal igual ao Genially) */
+        /* Alinhamento horizontal das alternativas */
         .alternativas-container {
             display: flex;
+            flex-direction: row;
             justify-content: space-between;
             gap: 15px;
             width: 100%;
+            margin-bottom: 25px;
         }
 
         .btn-alternativa {
             flex: 1;
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.08);
             color: white;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            padding: 15px 20px;
-            font-size: 1.3rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 18px 10px;
+            font-size: 1.4rem;
             font-weight: bold;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
+            outline: none;
         }
 
-        .btn-alternativa:hover {
-            background-color: rgba(255, 255, 255, 0.25);
-            transform: scale(1.02);
+        .btn-alternativa:not(:disabled):hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: #f1c40f;
+            transform: translateY(-2px);
         }
 
-        /* CORES FORTES PARA FEEDBACK VISUAL */
+        /* Bloqueio visual pós-seleção */
+        .btn-alternativa:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Feedback visual forte de certo/errado */
         .btn-alternativa.correta {
             background-color: #2ecc71 !important;
             border-color: #27ae60 !important;
             color: white !important;
+            opacity: 1 !important;
         }
 
         .btn-alternativa.errada {
             background-color: #e74c3c !important;
             border-color: #c0392b !important;
             color: white !important;
+            opacity: 1 !important;
         }
 
         #mensagem-feedback {
-            margin-top: 20px;
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: bold;
+            margin-top: 15px;
             min-height: 30px;
+        }
+
+        /* Botão para ir à próxima pergunta (oculto por padrão) */
+        #btn-proxima {
+            display: none; 
+            background-color: #f1c40f;
+            color: #111;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.15rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        #btn-proxima:hover {
+            background-color: #f39c12;
+            transform: scale(1.03);
+        }
+
+        /* Responsividade para celular */
+        @media (max-width: 600px) {
+            .alternativas-container {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .btn-alternativa {
+                padding: 15px;
+                font-size: 1.2rem;
+            }
+            header h1 {
+                font-size: 1.8rem;
+            }
+            .texto-pergunta {
+                font-size: 1.15rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <a href="index.html" class="btn-voltar-topo" style="position: absolute; top: 20px; left: 20px;">⬅ Voltar ao Menu</a>
+    <div class="bg-fixo-container">
+        <img src="maracatu.jpg" alt="Fundo Maracatu">
+    </div>
+
+    <a href="index.html" class="btn-voltar-topo">⬅ Voltar ao Menu</a>
 
     <div class="wrapper-quiz">
         <header>
-            <h1>⚡ Enigma 5: Quiz de Lógica</h1>
+            <h1>⚡ Enigma 5: Desafio de Lógica</h1>
         </header>
 
-        <main>
-            <div class="imagem-pergunta-container">
-                <img id="img-quiz" src="" alt="Ilustração do Enigma">
-            </div>
-
+        <main id="conteudo-quiz">
             <p id="pergunta-campo" class="texto-pergunta"></p>
 
-            <div class="alternativas-container">
+            <div id="container-opcoes" class="alternativas-container">
                 <button class="btn-alternativa" data-index="0"></button>
                 <button class="btn-alternativa" data-index="1"></button>
                 <button class="btn-alternativa" data-index="2"></button>
             </div>
 
             <div id="mensagem-feedback"></div>
+            
+            <button id="btn-proxima">Avançar ➡️</button>
         </main>
     </div>
 

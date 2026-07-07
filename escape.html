@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Island - Diário de Sobrevivência</title>
+    <style>
+        :root {
+            --bg-wood: #3d2414;
+            --notebook-paper: #fdfbf7;
+            --text-main: #2c3e50;
+            --accent-color: #e67e22;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+            --line-color: #e2dacb;
+            --margin-line: #fab1a0;
+        }
+
+        /* Temas de Cores Marcantes por Missão */
+        [data-mission="1"] { --accent-color: #d35400; } /* Praia: Laranja Vivo */
+        [data-mission="2"] { --accent-color: #218c74; } /* Floresta: Verde Musgo */
+        [data-mission="3"] { --accent-color: #01a3a4; } /* Arbustos: Turquesa Intenso */
+        [data-mission="4"] { --accent-color: #2b4c7e; } /* Abrigo: Azul Marinho */
+        [data-mission="5"] { --accent-color: #706fd3; } /* Jangada: Roxo Real */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', serif;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #4a2e1b 25%, transparent 25%) -50px 0,
+                        linear-gradient(225deg, #4a2e1b 25%, transparent 25%) -50px 0,
+                        linear-gradient(45deg, #4a2e1b 25%, transparent 25%),
+                        linear-gradient(315deg, #4a2e1b 25%, #351f11 25%);
+            background-size: 100px 100px;
+            background-color: #351f11;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Container do Jogo */
+        #game-container {
+            position: relative;
+            width: 1050px;
+            height: 650px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        /* MÃOS EM SVG REALISTAS SEGURANDO O CADERNO */
+        .hand-svg {
+            position: absolute;
+            width: 140px;
+            height: auto;
+            z-index: 10;
+            top: 55%;
+            transform: translateY(-50%);
+            filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.4));
+        }
+        .hand-left { left: -95px; }
+        .hand-right { right: -95px; }
+
+        /* ESTRUTURA DO CADERNO INTERATIVO */
+        #notebook {
+            width: 100%;
+            height: 100%;
+            background: var(--notebook-paper);
+            border-radius: 8px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6), 
+                        inset 0 0 40px rgba(0,0,0,0.05);
+            border: 12px solid #1e120b;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+
+        /* Divisória Central de Espiral/Vinco */
+        #notebook::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            transform: translateX(-50%);
+            background: linear-gradient(to right, 
+                rgba(0,0,0,0.15) 0%, 
+                rgba(255,255,255,0.1) 30%, 
+                rgba(0,0,0,0.3) 50%, 
+                rgba(255,255,255,0.1) 70%, 
+                rgba(0,0,0,0.15) 100%);
+            border-left: 1px solid rgba(0,0,0,0.2);
+            border-right: 1px solid rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+
+        /* EFEITO DE PÁGINA PAUTADA ENVELHECIDA */
+        .page {
+            flex: 1;
+            padding: 45px 50px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 100%;
+            overflow-y: auto;
+            background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+            background-size: 100% 28px;
+            background-position: 0 10px;
+        }
+        
+        .page-left {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding-right: 60px;
+        }
+        .page-left::after {
+            content: '';
+            position: absolute;
+            right: 25px; top: 0; bottom: 0;
+            width: 1px;
+            background-color: var(--margin-line);
+        }
+
+        .page-right {
+            padding-left: 60px;
+        }
+        .page-right::before {
+            content: '';
+            position: absolute;
+            left: 25px; top: 0; bottom: 0;
+            width: 1px;
+            background-color: var(--margin-line);
+        }
+
+        .page-animate {
+            animation: pageFlipEffect 0.5s ease-out forwards;
+        }
+        @keyframes pageFlipEffect {
+            from { opacity: 0; transform: translateX(15px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        h2 {
+            font-size: 24px;
+            color: var(--text-main);
+            margin-bottom: 15px;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+        .mission-header {
+            font-family: 'Arial', sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-color);
+            font-weight: 1000;
+            margin-bottom: 8px;
+        }
+        .question-body {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #3d3d3d;
+            margin-bottom: 20px;
+        }
+        .pistas-card {
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px dashed var(--accent-color);
+            border-left: 5px solid var(--accent-color);
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.02);
+        }
+
+        /* BOTÕES DE ALTERNATIVAS */
+        .options-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+        .btn-choice {
+            background: #fff;
+            border: 2px solid #e2dacb;
+            padding: 14px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            font-family: 'Arial', sans-serif;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+        }
+        .btn-choice:hover {
+            border-color: var(--accent-color);
+            background: rgba(0, 0, 0, 0.01);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .btn-choice .letter-marker {
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        @keyframes shakeAction {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+        .wrong-shake {
+            animation: shakeAction 0.3s ease-in-out infinite;
+            background-color: #fab1a0 !important;
+            border-color: var(--error-color) !important;
+            color: #b3392b !important;
+        }
+        .correct-flash {
+            background-color: #55efc4 !important;
+            border-color: var(--success-color) !important;
+            color: #00b894 !important;
+            font-weight: bold;
+        }
+
+        /* INTERAÇÕES VISUAIS: PEDRAS DO RIO */
+        .river-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .river-stone {
+            background: linear-gradient(135deg, #718093, #2f3640);
+            color: #fff;
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: inset -4px -4px 10px rgba(0,0,0,0.4), 0 6px 12px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+            margin: 0 auto;
+        }
+        .river-stone:hover { transform: scale(1.15) rotate(5deg); }
+
+        /* INTERAÇÕES VISUAIS: PEGADAS */
+        .footprints-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .footprint-item {
+            border: 2px dashed #b2bec3;
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .footprint-item:hover { border-color: var(--accent-color); background: rgba(0,0,0,0.01); }
+
+        /* LANTERNA */
+        #flashlight-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--notebook-paper);
+            z-index: 20;
+            display: none;
+            flex-direction: row;
+        }
+        .flashlight-left {
+            flex: 1;
+            padding: 45px 50px;
+            border-right: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .flashlight-right {
+            flex: 1;
+            background: #2f3640;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .backpack-silhouette {
+            width: 80%;
+            height: 80%;
+            background: #111215;
+            border-radius: 40px 40px 20px 20px;
+            border: 5px solid #1c1f24;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        #backpack-darkness {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #050505;
+            border-radius: 35px 35px 15px 15px;
+            pointer-events: none;
+            clip-path: circle(0px at 0px 0px);
+        }
+        #flashlight-beam-text {
+            position: absolute;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            color: #7f8c8d;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            display: none;
+            text-shadow: 0 0 5px rgba(255,255,255,0.8);
+            z-index: 22;
+        }
+        #btn-code-trigger {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: none;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            z-index: 25;
+        }
+
+        /* INPUT CADEADO */
+        #lock-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%; width: 100%;
+            text-align: center;
+        }
+        .lock-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            border: 3px solid #2c3e50;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .code-num-input {
+            width: 160px;
+            padding: 12px;
+            font-size: 26px;
+            text-align: center;
+            letter-spacing: 6px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* INVENTÁRIO LATERAL */
+        #backpack-sidebar {
+            width: 110px;
+            background: linear-gradient(to bottom, #2c3e50, #1a252f);
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 25px 10px;
+            gap: 22px;
+            border: 12px solid #1e120b;
+            border-left: none;
+            box-shadow: inset 5px 0 15px rgba(0,0,0,0.5);
+        }
+        .sidebar-title {
+            color: #fff;
+            font-size: 11px;
+            font-family: 'Arial', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+        .slot-circle {
+            width: 65px;
+            height: 65px;
+            background: #23313f;
+            border-radius: 50%;
+            border: 2px dashed #576574;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            position: relative;
+            transition: all 0.4s ease;
+        }
+        .slot-circle.active-item {
+            border-style: solid;
+            border-color: var(--accent-color);
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .slot-name {
+            position: absolute;
+            bottom: -16px;
+            font-size: 9px;
+            color: #cbd5e1;
+            font-family: 'Arial', sans-serif;
+            text-transform: uppercase;
+        }
+
+        /* TELAS ESPECIAIS */
+        .center-splash {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%; width: 100%;
+            text-align: center;
+            padding: 30px;
+        }
+        .btn-action {
+            padding: 14px 30px;
+            font-size: 15px;
+            font-family: 'Arial', sans-serif;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .btn-action:hover { transform: scale(1.05); }
+
+        .illustration-box {
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .big-badge {
+            font-size: 90px;
+            filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.15));
+        }
+
+        /* ESTILOS EXCLUSIVOS DA TELA DE VITÓRIA INTERATIVA */
+        .win-canvas-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .particle {
+            position: absolute;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: transform 0.2s ease-out;
+        }
+        .particle:hover {
+            transform: scale(1.8) rotate(20deg);
+        }
+        .celebration-title {
+            font-size: 36px;
+            color: #27ae60;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-shadow: 0px 4px 10px rgba(46, 204, 113, 0.2);
+        }
+        .victory-quote {
+            font-style: italic;
+            color: #4a5568;
+            border-left: 4px solid #2ecc71;
+            padding-left: 15px;
+            margin: 20px 0;
+            font-size: 16px;
+            line-height: 1.5;
+            text-align: left;
+            background: rgba(46, 204, 113, 0.05);
+            border-radius: 0 8px 8px 0;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        .win-btn-box {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+            margin-top: 20px;
+            z-index: 10;
+        }
+        .btn-win-home { background: #2c3e50; }
+        .btn-win-home:hover { background: #34495e; }
+        .btn-win-menu { background: #27ae60; }
+        .btn-win-menu:hover { background: #2ecc71; }
+
+        @keyframes floatEffect {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        .floating-boat {
+            animation: floatEffect 3s ease-in-out infinite;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body data-mission="1">
+
+    <div id="victory-particles-container" class="win-canvas-container"></div>
+
+    <div id="game-container">
+        
+        <svg class="hand-svg hand-left" viewBox="0 0 100 180" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,70 Q20,65 45,75 Q55,60 75,70 Q80,75 75,85 Q65,90 55,88 Q70,92 82,100 Q85,106 78,114 Q65,115 50,108 Q65,115 75,125 Q75,132 65,138 Q50,135 40,128 Q52,138 58,148 Q55,155 45,152 Q30,138 25,120 L0,125 Z" fill="#e0b894" stroke="#cfa27e" stroke-width="2"/>
+            <path d="M50,72 C58,74 68,82 62,87 C56,90 48,80 48,75 Z" fill="#d5aa84"/>
+            <path d="M52,89 C64,93 72,100 66,107 C58,110 50,98 50,92 Z" fill="#d5aa84"/>
+            <path d="M48,109 C58,115 65,124 58,130 C50,132 44,120 44,114 Z" fill="#d5aa84"/>
+        </svg>
+
+        <svg class="hand-svg hand-right" viewBox="0 0 100 180" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100,70 Q80,65 55,75 Q45,60 25,70 Q20,75 25,85 Q35,90 45,88 Q30,92 18,100 Q15,106 22,114 Q35,115 50,108 Q35,115 25,125 Q25,132 35,138 Q50,135 60,128 Q48,138 42,148 Q45,155 55,152 Q70,138 75,120 L100,125 Z" fill="#e0b894" stroke="#cfa27e" stroke-width="2"/>
+            <path d="M50,72 C42,74 32,82 38,87 C44,90 52,80 52,75 Z" fill="#d5aa84"/>
+            <path d="M48,89 C36,93 28,100 34,107 C42,110 50,98 50,92 Z" fill="#d5aa84"/>
+            <path d="M52,109 C42,115 35,124 42,130 C50,132 56,120 56,114 Z" fill="#d5aa84"/>
+        </svg>
+
+        <div id="notebook">
+            
+            <div id="flashlight-screen">
+                <div class="flashlight-left">
+                    <span class="mission-header" style="color:#7f8c8d;">Mochila de Emergência</span>
+                    <h2>Espere! Olhe nos seus pertences...</h2>
+                    <p class="question-body">Antes de iniciar a jornada final de montagem, você deve vasculhar o compartimento escuro da sua mochila usando o feixe de luz da lanterna para encontrar a combinação de fuga deixada gravada.</p>
+                    <div style="margin-top:20px; display:flex; flex-direction:column; gap:10px; font-family:'Arial'; font-size:14px;">
+                        <div>🟢 Item 1: Ração Bomi B. ✅</div>
+                        <div>🟢 Item 2: Troncos de Madeira ✅</div>
+                        <div>🟢 Item 3: Rolo de Cordas Sisal ✅</div>
+                        <div>🟢 Item 4: Lanterna Operacional ✅</div>
+                    </div>
+                </div>
+                <div class="flashlight-right" id="flashlight-zone">
+                    <div class="backpack-silhouette">
+                        <div id="backpack-darkness"></div>
+                    </div>
+                    <div id="flashlight-beam-text">Continue procurando...</div>
+                    <button id="btn-code-trigger" onclick="goToLockInputScreen()">Inserir Código</button>
+                </div>
+            </div>
+
+            <div class="page page-left" id="notebook-left-page"></div>
+            <div class="page page-right" id="notebook-right-page"></div>
+
+        </div>
+
+        <div id="backpack-sidebar">
+            <div class="sidebar-title">Mochila</div>
+            <div class="slot-circle" id="inv-slot-1">🥣<span class="slot-name">Bomi</span></div>
+            <div class="slot-circle" id="inv-slot-2">🪵<span class="slot-name">Madeira</span></div>
+            <div class="slot-circle" id="inv-slot-3">🪢<span class="slot-name">Corda</span></div>
+            <div class="slot-circle" id="inv-slot-4">🔦<span class="slot-name">Lanterna</span></div>
+        </div>
+
+    </div>
+
+    <script>
+        const gameData = {
+            missions: [
+                {
+                    id: 1,
+                    name: "Missão 1 – O Impacto (Praia)",
+                    rewardSlot: 1,
+                    questions: [
+                        {
+                            title: "Desafio 1 – Quem Sobreviveu?",
+                            text: "Você acorda após a queda do avião e encontra quatro pessoas desacordadas. Apenas uma delas ainda está viva.",
+                            pistas: "• Ana não está viva.<br>• Se Bruno estiver vivo, Carlos também está vivo.<br>• Carlos não está vivo.<br>• Apenas uma pessoa está viva.",
+                            options: ["Ana", "Bruno", "Carlos", "Daniela"],
+                            correct: 3,
+                            type: "standard",
+                            badge: "✈️"
+                        },
+                        {
+                            title: "Desafio 2 – A Mochila Perdida",
+                            text: "Você encontra quatro mochilas espalhadas pela praia. Apenas uma contém comida.",
+                            pistas: "• A mochila azul não tem comida.<br>• A mochila vermelha está à esquerda da mochila verde.<br>• A mochila verde está vazia.<br>• A mochila amarela está à direita da mochila azul.<br>• Apenas uma mochila possui comida.",
+                            options: ["Azul", "Vermelha", "Verde", "Amarela"],
+                            correct: 1,
+                            type: "standard",
+                            badge: "🎒"
+                        },
+                        {
+                            title: "Desafio 3 – O Caminho Seguro",
+                            text: "Você precisa sair da praia antes da maré subir. Existem três trilhas.",
+                            pistas: "• A trilha A leva para uma cachoeira ou para um penhasco.<br>• A trilha B nunca leva à cachoeira.<br>• A trilha C leva para a floresta.<br>• A única trilha que leva à água é a cachoeira.",
+                            options: ["Trilha A", "Trilha B", "Trilha C"],
+                            correct: 0,
+                            type: "standard",
+                            badge: "👣"
+                        },
+                        {
+                            title: "Desafio 4 – A Garrafa de Água",
+                            text: "Você conseguiu encontrar apenas uma garrafa de água. Durante a caminhada, a cada hora você bebe metade da água que resta. Depois de 3 horas ainda restam 250 mL.",
+                            pistas: "Qual a quantidade inicial contida na garrafa seguindo a regressão?",
+                            options: ["1000 mL", "1500 mL", "2000 mL", "2500 mL"],
+                            correct: 2,
+                            type: "standard",
+                            badge: "💧"
+                        },
+                        {
+                            title: "Desafio 5 – O Pedido de Socorro",
+                            text: "Você faz uma fogueira que deve ser acesa exatamente às 18h00. Seu relógio adianta 10 minutos a cada hora cheia decorrida. Agora ele marca exatamente 15h00 (momento em que foi ajustado corretamente).",
+                            pistas: "Que horas o relógio defeituoso marcará quando a hora real for exatamente 18h00?",
+                            options: ["18h00", "18h20", "18h30", "18h40"],
+                            correct: 2,
+                            type: "standard",
+                            badge: "🔥"
+                        }
+                    ]
+                },
+                {
+                    id: 2,
+                    name: "Missão 2 – A Floresta",
+                    rewardSlot: 2,
+                    questions: [
+                        {
+                            title: "Desafio 1 – As Trilhas",
+                            text: "Após entrar na floresta, você encontra três trilhas. Um tronco possui a seguinte inscrição entalhada:",
+                            pistas: "\"A saída não está na Trilha A.<br>Se a saída estiver na Trilha C, então a Trilha B é perigosa.<br>A Trilha B não é perigosa.\"",
+                            options: ["Trilha A", "Trilha B", "Trilha C"],
+                            correct: 1,
+                            type: "standard",
+                            badge: "🌲"
+                        },
+                        {
+                            title: "Desafio 2 – As Frutas Misteriosas",
+                            text: "Você encontra uma árvore com uma placa indicando que cada fruta do mesmo tipo possui exatamente o mesmo peso.",
+                            pistas: "Na balança de pedra você observa:<br>• Maçã + Maçã = 8 kg<br>• Maçã + Banana = 7 kg",
+                            options: ["2 kg", "3 kg", "4 kg", "5 kg"],
+                            correct: 1,
+                            type: "standard",
+                            badge: "🍎"
+                        },
+                        {
+                            title: "Desafio 3 – O Rio",
+                            text: "Você chega a um rio e precisa atravessá-lo saltando por pedras numeradas seguindo um padrão rigoroso.",
+                            pistas: "Sequência lógica das pedras: 5 → 8 → 14 → 23 → 35 → ?",
+                            options: [46, 48, 50, 52],
+                            correct: 2,
+                            type: "stones",
+                            badge: "🏞️"
+                        },
+                        {
+                            title: "Desafio 4 – O Totem da Floresta",
+                            text: "Um antigo totem possui quatro símbolos de animais que precisam ser ordenados pelas inscrições das runas:",
+                            pistas: "• A cobra não está na primeira posição.<br>• A onça está imediatamente antes da arara.<br>• O macaco está na primeira posição.",
+                            options: [
+                                "Macaco – Onça – Arara – Cobra",
+                                "Macaco – Cobra – Onça – Arara",
+                                "Cobra – Macaco – Onça – Arara",
+                                "Macaco – Arara – Onça – Cobra"
+                            ],
+                            correct: 0,
+                            type: "standard",
+                            badge: "🐒"
+                        },
+                        {
+                            title: "Desafio 5 – A Cabana Abandonada",
+                            text: "Dentro de uma cabana rústica existe um cadeado mecânico protetor. Na parede está escrito o enigma:",
+                            pistas: "• O código possui três algarismos.<br>• A soma dos três números é igual a 12.<br>• O primeiro é o dobro do segundo.<br>• O terceiro é igual ao segundo.",
+                            options: ["633", "642", "534", "444"],
+                            correct: 0,
+                            type: "standard",
+                            badge: "🏚️"
+                        }
+                    ]
+                },
+                {
+                    id: 3,
+                    name: "Missão 3 – Os Arbustos",
+                    rewardSlot: 3,
+                    questions: [
+                        {
+                            title: "Desafio 1 – As Pegadas",
+                            text: "Ao atravessar os arbustos, você encontra quatro conjuntos de pegadas na lama. Apenas um deles é humano.",
+                            pistas: "• As pegadas humanas não são as menores.<br>• As do javali são maiores que as da raposa.<br>• As do macaco são menores que as humanas.<br>• As maiores pegadas pertencem ao javali.",
+                            options: ["Conjunto A (Pequeno)", "Conjunto B (Médio)", "Conjunto C (Grande)", "Conjunto D (Muito Grande)"],
+                            correct: 2,
+                            type: "footprints",
+                            badge: "🐾"
+                        },
+                        {
+                            title: "Desafio 2 – As Mochilas",
+                            text: "Nos arbustos densos você encontra quatro mochilas deixadas por exploradores. Apenas uma contém uma bússola.",
+                            pistas: "• A bússola não está na mochila azul.<br>• A mochila verde está imediatamente à direita da vermelha.<br>• A mochila amarela está na última posição.<br>• A bússola está na mochila que fica entre a vermelha e a amarela.",
+                            options: ["Azul", "Vermelha", "Verde", "Amarela"],
+                            correct: 2,
+                            type: "standard",
+                            badge: "🧭"
+                        },
+                        {
+                            title: "Desafio 3 – O Caminho Entre os Arbustos",
+                            text: "Os arbustos escondem uma trilha de pedras numeradas. Você só avançará se decifrar a ordem:",
+                            pistas: "Sequência protetora: 7, 11, 17, 25, 35, ?",
+                            options: ["45", "46", "47", "49"],
+                            correct: 2,
+                            type: "standard",
+                            badge: "🌿"
+                        },
+                        {
+                            title: "Desafio 4 – O Sinal Misterioso",
+                            text: "Para ligar uma velha antena de rádio de emergência, digite o código matemático de 3 números corretos:",
+                            pistas: "• O primeiro número é o menor número primo de dois algarismos.<br>• O segundo número é a metade inteira do primeiro.<br>• O terceiro número é a soma exata dos dois anteriores.",
+                            options: ["10 - 5 - 15", "11 - 5 - 16", "13 - 6 - 19", "17 - 8 - 25"],
+                            correct: 1,
+                            type: "standard",
+                            badge: "📡"
+                        },
+                        {
+                            title: "Desafio 5 – A Cerca de Espinhos",
+                            text: "Para atravessar a cerca viva de espinhos sem se ferir, descubra qual dos quatro galhos é seguro manipular:",
+                            pistas: "• Apenas um galho é seguro.<br>• Se o galho A for seguro, então o galho C também é.<br>• O galho C não é seguro.<br>• O galho D é seguro somente se o galho B não for.",
+                            options: ["Galho A", "Galho B", "Galho C", "Galho D"],
+                            correct: 1,
+                            type: "standard",
+                            badge: "✂️"
+                        }
+                    ]
+                },
+                {
+                    id: 4,
+                    name: "Missão 4 – O Abrigo Abandonado",
+                    rewardSlot: 4,
+                    questions: [
+                        {
+                            title: "Desafio 1 – A Porta Trancada",
+                            text: "Ao entrar no abrigo, a porta interna de carvalho está bloqueada por uma tranca. Decifre o segredo de 3 algarismos:",
+                            pistas: "• O primeiro algarismo é o dobro do segundo.<br>• O terceiro é a soma exata dos dois primeiros.<br>• A soma absoluta dos três algarismos resulta em 18.",
+                            options: ["426", "639", "651", "744"],
+                            correct: 1,
+                            type: "standard",
+                            badge: "🚪"
+                        },
+                        {
+                            title: "Desafio 2 – O Diário do Sobrevivente",
+                            text: "Você lê na última página do caderno do antigo morador: 'Sempre saía para buscar alimento um dia sim e dois dias não. Saí ontem'.",
+                            pistas: "Em qual dia do calendário cíclico ele voltará a sair?",
+                            options: ["Hoje", "Amanhã", "Daqui a 2 dias", "Daqui a 3 dias"],
+                            correct: 2,
+                            type: "standard",
+                            badge: "📖"
+                        },
+                        {
+                            title: "Desafio 3 – As Caixas de Suprimentos",
+                            text: "No canto escuro do galpão há caixas organizadas de forma lógica. Qual caixa deve ser violada primeiro?",
+                            pistas: "Sequência das caixas: 4, 9, 16, 25, 36, ?",
+                            options: ["42", "47", "49", "52"],
+                            correct: 2,
+                            type: "standard",
+                            badge: "📦"
+                        },
+                        {
+                            title: "Desafio 4 – O Gerador",
+                            text: "O painel de energia opera sob progressão contínua. Determine a carga exata que deve ser injetada na Bateria D:",
+                            pistas: "• Bateria A = 12%<br>• Bateria B = 24%<br>• Bateria C = 48%<br>• Bateria D = ?",
+                            options: ["60%", "72%", "84%", "96%"],
+                            correct: 3,
+                            type: "standard",
+                            badge: "⚡"
+                        },
+                        {
+                            title: "Desafio 5 – O Rádio de Emergência",
+                            text: "Para calibrar o transmissor de rádio e enviar o S.O.S., selecione a frequência correta que fecha a matriz aritmética:",
+                            pistas: "Escala do painel: 15 – 18 – 24 – 33 – 45 – ?",
+                            options: ["54", "57", "60", "63"],
+                            correct: 2,
+                            type: "standard",
+                            badge: "📻"
+                        }
+                    ]
+                },
+                {
+                    id: 5,
+                    name: "Missão 5 – Construindo a Jangada",
+                    rewardSlot: null,
+                    questions: [
+                        {
+                            title: "Desafio 1 – Escolhendo os Troncos",
+                            text: "Você tem cinco conjuntos de troncos na praia. Apenas o que suportar o maior peso servirá de quilha central.",
+                            pistas: "• O tronco A suporta menos peso que o C.<br>• O tronco E suporta mais peso que o B.<br>• O tronco C suporta mais peso que o E.",
+                            options: ["Tronco A", "Tronco B", "Tronco C", "Tronco E"],
+                            correct: 2,
+                            type: "standard",
+                            badge: "🪵"
+                        },
+                        {
+                            title: "Desafio 2 – A Quantidade de Corda",
+                            text: "Cada tronco precisa ser preso ao próximo usando 2 metros de corda. Sua jangada final terá exatamente 8 troncos alinhados.",
+                            pistas: "Quantos metros de corda serão necessários estritamente para unir um tronco ao outro?",
+                            options: ["12 m", "14 m", "16 m", "18 m"],
+                            correct: 1,
+                            type: "standard",
+                            badge: "🪢"
+                        },
+                        {
+                            title: "Desafio 3 – Organizando os Troncos",
+                            text: "Os troncos possuem comprimentos variados de 2m, 3m, 4m e 5m. Ordene-os do menor para o maior para estabilidade.",
+                            pistas: "Selecione a disposição correta de montagem:",
+                            options: ["2 – 3 – 4 – 5", "5 – 4 – 3 – 2", "3 – 2 – 5 – 4", "4 – 2 – 5 – 3"],
+                            correct: 0,
+                            type: "standard",
+                            badge: "🛶"
+                        },
+                        {
+                            title: "Desafio 4 – O Peso da Jangada",
+                            text: "Sua balsa suporta no máximo 180 kg de carga útil. Você pesa 78 kg. Os mantimentos pesam: Água (24 kg), Comida (31 kg) e Ferramentas (18 kg).",
+                            pistas: "Quanto peso extra você ainda pode acomodar sem afundar na água?",
+                            options: ["19 kg", "25 kg", "29 kg", "33 kg"],
+                            correct: 2,
+                            type: "standard",
+                            badge: "⚖️"
+                        },
+                        {
+                            title: "Desafio 5 – A Maré",
+                            text: "A maré alta cíclica ocorre estritamente a cada 6 horas. A última foi registrada às 6h da manhã. Agora são exatamente 15h da tarde.",
+                            pistas: "Quantas horas faltam para a janela ideal de lançamento ao mar?",
+                            options: ["1 hora", "2 horas", "3 horas", "4 horas"],
+                            correct: 2,
+                            type: "standard",
+                            badge: "🌊"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        let currentMissionIdx = 0;
+        let currentQuestionIdx = 0;
+        let gameState = "START"; 
+
+        const pageLeft = document.getElementById("notebook-left-page");
+        const pageRight = document.getElementById("notebook-right-page");
+        const bodyElement = document.body;
+        const particleContainer = document.getElementById("victory-particles-container");
+
+        function updateGameDisplay() {
+            bodyElement.setAttribute("data-mission", gameData.missions[currentMissionIdx] ? gameData.missions[currentMissionIdx].id : "5");
+            
+            pageLeft.classList.remove("page-animate");
+            pageRight.classList.remove("page-animate");
+            void pageLeft.offsetWidth;
+            void pageRight.offsetWidth;
+            pageLeft.classList.add("page-animate");
+            pageRight.classList.add("page-animate");
+
+            // Limpa partículas se não estiver na tela de vitória
+            if (gameState !== "VITORIA") {
+                particleContainer.innerHTML = "";
+            }
+
+            if (gameState === "START") renderStartScreen();
+            else if (gameState === "MAPA") renderMapScreen();
+            else if (gameState === "JOGANDO") renderQuestionScreen();
+            else if (gameState === "VITORIA") renderWinScreen();
+        }
+
+        function renderStartScreen() {
+            pageLeft.innerHTML = `
+                <div class="illustration-box">
+                    <span class="big-badge">Island 🏝️</span>
+                    <h1 style="font-size: 32px; color: #1e120b; margin-top:20px; text-transform:uppercase;">Sobrevivência</h1>
+                    <p style="font-style:italic; color:#7f8c8d; margin-top:5px;">O Diário de Lógica da Ilha</p>
+                </div>
+            `;
+            pageRight.innerHTML = `
+                <div class="center-splash">
+                    <h2>Raciocínio ou Destruição</h2>
+                    <p class="question-body" style="text-align: center; margin-top:10px;">
+                        Seu avião caiu em coordenadas desconhecidas. Este diário contém registros deixados por antigos náufragos. Decifre as 25 armadilhas lógicas espalhadas pela ilha para juntar os itens essenciais e construir sua balsa de fuga.
+                    </p>
+                    <button class="btn-action" onclick="changeState('MAPA')">Abrir Diário</button>
+                </div>
+            `;
+        }
+
+        function renderMapScreen() {
+            const currentMission = gameData.missions[currentMissionIdx];
+            pageLeft.innerHTML = `
+                <div class="illustration-box">
+                    <span class="big-badge">🗺️</span>
+                    <h3 style="margin-top:15px; font-size:18px;">Topografia da Ilha</h3>
+                    <p style="font-size:13px; color:#7f8c8d; text-align:center; padding:10px 30px;">O progresso de caminhos desbravados é marcado com tinta preta nas folhas.</p>
+                </div>
+            `;
+
+            let listHTML = gameData.missions.map((m, idx) => {
+                let status = "🔒 Bloqueado";
+                if (idx < currentMissionIdx) status = "🔏 Concluído";
+                if (idx === currentMissionIdx) status = "📍 Explorando";
+                return `<li style="padding: 10px 5px; text-align:left; font-size:14px; font-family:'Arial'; border-bottom:1px dashed #e2dacb; font-weight: ${idx===currentMissionIdx?'bold':'normal'}; color: ${idx===currentMissionIdx?'var(--accent-color)':'#555'}">${m.name} <span style="float:right;">${status}</span></li>`;
+            }).join("");
+
+            pageRight.innerHTML = `
+                <div class="center-splash">
+                    <h2>Avançar de Fase</h2>
+                    <h3 style="color: var(--accent-color); margin: 10px 0; font-size:18px;">${currentMission.name}</h3>
+                    <ul style="list-style: none; margin-bottom: 20px; width: 100%;">
+                        ${listHTML}
+                    </ul>
+                    <button class="btn-action" onclick="changeState('JOGANDO')">Iniciar Fase</button>
+                </div>
+            `;
+        }
+
+        function renderQuestionScreen() {
+            const mission = gameData.missions[currentMissionIdx];
+            const question = mission.questions[currentQuestionIdx];
+
+            pageLeft.innerHTML = `
+                <div class="illustration-box">
+                    <span class="big-badge">${question.badge}</span>
+                    <div style="margin-top:30px; text-align:center; font-family:'Arial';">
+                        <span style="font-size:11px; color:#7f8c8d; text-transform:uppercase; letter-spacing:1px;">Desafios Concluídos</span>
+                        <div style="font-size:18px; font-weight:bold; color:var(--accent-color); margin-top:2px;">${currentQuestionIdx + 1} / 5</div>
+                    </div>
+                </div>
+            `;
+
+            let actionAreaHTML = "";
+
+            if (question.type === "standard") {
+                let optionsHTML = question.options.map((opt, idx) => `
+                    <button class="btn-choice" onclick="processAnswerSelection(${idx}, this)">
+                        <span class="letter-marker">${String.fromCharCode(65 + idx)})</span> ${opt}
+                    </button>
+                `).join("");
+                actionAreaHTML = `<div class="options-box">${optionsHTML}</div>`;
+            } else if (question.type === "stones") {
+                let stonesHTML = question.options.map((num, idx) => `
+                    <div class="river-stone" onclick="processAnswerSelection(${idx}, this)">${num}</div>
+                `).join("");
+                actionAreaHTML = `<div class="river-container">${stonesHTML}</div>`;
+            } else if (question.type === "footprints") {
+                let printsHTML = question.options.map((desc, idx) => `
+                    <div class="footprint-item" onclick="processAnswerSelection(${idx}, this)">
+                        <div style="font-size:24px;">👣</div>
+                        <div style="font-size:12px; font-weight:bold; font-family:'Arial'; margin-top:5px;">${desc}</div>
+                    </div>
+                `).join("");
+                actionAreaHTML = `<div class="footprints-grid">${printsHTML}</div>`;
+            }
+
+            pageRight.innerHTML = `
+                <span class="mission-header">${mission.name}</span>
+                <h2>${question.title}</h2>
+                <p class="question-body">${question.text}</p>
+                <div class="pistas-card">
+                    <strong>Pistas Registradas:</strong><br><span style="font-family:'Arial'; font-size:13px; margin-top:5px; display:block;">${question.pistas}</span>
+                </div>
+                ${actionAreaHTML}
+            `;
+        }
+
+        function processAnswerSelection(idx, element) {
+            const mission = gameData.missions[currentMissionIdx];
+            const question = mission.questions[currentQuestionIdx];
+
+            if (idx === question.correct) {
+                element.classList.add("correct-flash");
+                const activeElements = pageRight.querySelectorAll("button, .river-stone, .footprint-item");
+                activeElements.forEach(el => el.style.pointerEvents = "none");
+
+                setTimeout(() => {
+                    currentQuestionIdx++;
+                    if (currentQuestionIdx < 5) {
+                        updateGameDisplay();
+                    } else {
+                        triggerMissionCompletion();
+                    }
+                }, 1000);
+            } else {
+                element.classList.add("wrong-shake");
+                setTimeout(() => { element.classList.remove("wrong-shake"); }, 500);
+            }
+        }
+
+        function triggerMissionCompletion() {
+            const currentMission = gameData.missions[currentMissionIdx];
+            
+            if (currentMission.rewardSlot) {
+                document.getElementById(`inv-slot-${currentMission.rewardSlot}`).classList.add("filled", "active-item");
+            }
+
+            currentMissionIdx++;
+            currentQuestionIdx = 0;
+
+            if (currentMissionIdx === 4) {
+                runFlashlightMiniGame();
+            } else if (currentMissionIdx < gameData.missions.length) {
+                gameState = "MAPA";
+                updateGameDisplay();
+            } else {
+                gameState = "VITORIA";
+                updateGameDisplay();
+            }
+        }
+
+        function runFlashlightMiniGame() {
+            const screen = document.getElementById("flashlight-screen");
+            const zone = document.getElementById("flashlight-zone");
+            const darkness = document.getElementById("backpack-darkness");
+            const beamText = document.getElementById("flashlight-beam-text");
+            const btnTrigger = document.getElementById("btn-code-trigger");
+
+            screen.style.display = "flex";
+
+            zone.addEventListener("mousemove", (e) => {
+                const rect = zone.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                darkness.style.clipPath = `circle(65px at ${x}px ${y}px)`;
+                
+                beamText.style.display = "block";
+                beamText.style.left = `${x}px`;
+                beamText.style.top = `${y - 20}px`;
+
+                const pctX = (x / rect.width) * 100;
+                const pctY = (y / rect.height) * 100;
+
+                if (pctX > 70 && pctY > 65) {
+                    beamText.innerText = "Código: 2701";
+                    beamText.style.color = "#f1c40f";
+                    btnTrigger.style.display = "block";
+                } else {
+                    beamText.innerText = "Continue procurando...";
+                    beamText.style.color = "#fff";
+                }
+            });
+
+            zone.addEventListener("mouseleave", () => {
+                beamText.style.display = "none";
+                darkness.style.clipPath = `circle(0px at 0px 0px)`;
+            });
+        }
+
+        function goToLockInputScreen() {
+            document.getElementById("flashlight-screen").style.display = "none";
+            
+            pageLeft.innerHTML = `
+                <div class="illustration-box">
+                    <span class="big-badge">🔒</span>
+                    <h2 style="margin-top:20px;">SEGURANÇA EXTREMA</h2>
+                    <p style="color:#7f8c8d; font-size:13px; text-align:center; padding:0 15px;">Insira a combinação alfanumérica de 4 dígitos coletada na varredura interna da mochila.</p>
+                </div>
+            `;
+
+            pageRight.innerHTML = `
+                <div id="lock-screen" style="display:flex;">
+                    <h2>Inserir Código da Mochila</h2>
+                    <div class="lock-box">
+                        <input type="text" id="lock-input-field" class="code-num-input" maxlength="4" placeholder="0000" inputmode="numeric">
+                        <br>
+                        <button class="btn-action" onclick="validateLockCode()" style="margin-top:10px;">Girar Engrenagem</button>
+                    </div>
+                    <p id="lock-error-alert" style="color:var(--error-color); font-family:'Arial'; font-size:13px; font-weight:bold; margin-top:15px; display:none;">Código Inválido! Tente novamente.</p>
+                </div>
+            `;
+        }
+
+        function validateLockCode() {
+            const inputVal = document.getElementById("lock-input-field").value;
+            if (inputVal === "2701") {
+                gameState = "MAPA";
+                currentQuestionIdx = 0;
+                updateGameDisplay();
+            } else {
+                const alertEl = document.getElementById("lock-error-alert");
+                alertEl.style.display = "block";
+                const inputEl = document.getElementById("lock-input-field");
+                inputEl.style.borderColor = "var(--error-color)";
+                setTimeout(() => { inputEl.style.borderColor = "#bdc3c7"; }, 800);
+            }
+        }
+
+        /* NOVA LÓGICA DE VITÓRIA INTERATIVA COM GERADOR DE PARTÍCULAS */
+        function renderWinScreen() {
+            // Criação das partículas flutuantes interativas
+            generateInteractiveParticles();
+
+            pageLeft.innerHTML = `
+                <div class="illustration-box" style="justify-content: center; height: 100%;">
+                    <div class="floating-boat">
+                        <span class="big-badge">⛵</span>
+                    </div>
+                    <h1 class="celebration-title" style="margin-top: 25px;">VITÓRIA!</h1>
+                    <div style="font-family:'Arial'; font-size: 13px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">
+                        Status: Sobrevivente do Ano
+                    </div>
+                </div>
+            `;
+
+            pageRight.innerHTML = `
+                <div class="center-splash" style="justify-content: flex-start; padding-top: 15px;">
+                    <span class="mission-header" style="color: #27ae60;">🎉 Quiz Finalizado com Sucesso!</span>
+                    <h2 style="font-size: 26px; margin-bottom: 5px;">Você Conseguiu Escapar!</h2>
+                    
+                    <div class="victory-quote">
+                        <strong>"A maior ferramenta de sobrevivência não é uma bússola ou uma faca, mas sim a lógica indomável da mente humana."</strong>
+                    </div>
+
+                    <p class="question-body" style="text-align: justify; font-size: 14px; line-height: 1.5; margin-bottom: 15px;">
+                        Combinando análise de pistas, raciocínio lógico-temporal e matemática abstrata, você decifrou todos os 25 enigmas da ilha e amarrou o último nó da sua jangada. O mar está calmo e o horizonte agora é seu destino!
+                    </p>
+
+                    <div style="background: rgba(0,0,0,0.03); border: 1px dashed #27ae60; border-radius: 6px; padding: 10px; width: 100%; text-align: center; margin-bottom: 15px;">
+                        <span style="font-family:'Arial'; font-size: 13px; color: #2c3e50;">💡 <strong>Dica Interativa:</strong> Passe o mouse nas folhas e confetes ao redor para vê-los dançar!</span>
+                    </div>
+                    
+                    <div class="win-btn-box">
+                        <button class="btn-action btn-win-home" onclick="resetFullGame()">🔄 Voltar ao Início</button>
+                        <button class="btn-action btn-win-menu" onclick="window.location.href='index.html'">🗺️ Voltar ao Menu</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateInteractiveParticles() {
+            particleContainer.innerHTML = "";
+            const items = ['🍃', '🍂', '✨', '⭐', '🟩', '🟡'];
+            const maxParticles = 25;
+
+            for (let i = 0; i < maxParticles; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.innerText = items[Math.floor(Math.random() * items.length)];
+                
+                // Distribuição aleatória baseada no tamanho da tela
+                particle.style.left = Math.random() * 95 + 'vw';
+                particle.style.top = Math.random() * 92 + 'vh';
+                particle.style.fontSize = Math.random() * 15 + 15 + 'px';
+                particle.style.opacity = Math.random() * 0.5 + 0.4;
+                
+                // Adiciona uma leve animação CSS de flutuação individual
+                particle.style.animation = `floatEffect ${Math.random() * 3 + 3}s ease-in-out infinite alternate`;
+                particle.style.animationDelay = Math.random() * 2 + 's';
+
+                // Interatividade via JS ao passar o mouse perto
+                particle.addEventListener('mouseover', () => {
+                    particle.style.transform = `translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px) scale(2) rotate(${Math.random() * 90}deg)`;
+                    particle.style.opacity = "1";
+                });
+
+                particleContainer.appendChild(particle);
+            }
+        }
+
+        function resetFullGame() {
+            currentMissionIdx = 0;
+            currentQuestionIdx = 0;
+            gameState = "START";
+            for(let i = 1; i <= 4; i++) {
+                document.getElementById(`inv-slot-${i}`).classList.remove("filled", "active-item");
+            }
+            updateGameDisplay();
+        }
+
+        function changeState(newState) {
+            gameState = newState;
+            updateGameDisplay();
+        }
+
+        window.onload = () => {
+            updateGameDisplay();
+        };
+    </script>
+</body>
+</html>

@@ -526,7 +526,25 @@
             animation: floatEffect 3s ease-in-out infinite;
             display: inline-block;
         }
-    </style>
+    
+@media (max-width:900px){
+body{overflow:auto;align-items:flex-start;padding:10px;}
+#game-container{width:100%;height:auto;flex-direction:column;padding:0}
+.hand-svg{display:none}
+#notebook{flex-direction:column;height:auto;border-width:6px}
+#notebook:before{display:none}
+.page{padding:20px;min-height:auto;background-size:100% 24px}
+.page-left,.page-right{padding:20px;border:none}
+.page-left:after,.page-right:before{display:none}
+#backpack-sidebar{width:100%;border-left:6px solid #1e120b;border-top:none;flex-direction:row;justify-content:center;flex-wrap:wrap;border-radius:0 0 8px 8px;padding:10px;gap:10px}
+.slot-circle{width:52px;height:52px;font-size:20px}
+.big-badge{font-size:54px}
+h2{font-size:20px}
+.question-body,.btn-choice{font-size:14px}
+.river-container{grid-template-columns:repeat(2,1fr)}
+}
+
+</style>
 </head>
 <body data-mission="1">
 

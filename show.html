@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Show do Milhão da Matemática</title>
+    <style>
+        /* ==========================================================================
+           1. VARIÁVEIS DE ESTILO, CORES E TEMAS
+           ========================================================================== */
+        :root {
+            --bg-glow: radial-gradient(circle at center, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%);
+            --panel-bg: rgba(10, 20, 50, 0.9);
+            --panel-border: #00f2fe;
+            --text-main: #ffffff;
+            --text-muted: #a0aec0;
+            --gold: #ffd700;
+            --gold-glow: 0 0 15px #ffd700;
+            --neon-blue: #00f2fe;
+            --neon-glow: 0 0 15px #00f2fe;
+            --correct-bg: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --wrong-bg: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            --selected-bg: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+            --btn-default: linear-gradient(135deg, #0f2027 0%, #203a43 100%);
+            --warning-color: #dd6b20;
+            
+            --font-size-title: 2.8rem;
+            --font-size-q: 1.35rem;
+            --font-size-opt: 1.1rem;
+            --radius: 16px;
+        }
+
+        [data-theme="light"] {
+            --bg-glow: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            --panel-bg: rgba(255, 255, 255, 0.95);
+            --panel-border: #3182ce;
+            --text-main: #1a202c;
+            --text-muted: #4a5568;
+            --gold: #d69e2e;
+            --gold-glow: 0 2px 4px rgba(0,0,0,0.1);
+            --neon-blue: #3182ce;
+            --neon-glow: 0 2px 4px rgba(0,0,0,0.1);
+            --btn-default: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+        }
+
+        [data-accessibility="high-contrast"] {
+            --bg-glow: #000000 !important;
+            --panel-bg: #000000 !important;
+            --panel-border: #ffffff !important;
+            --text-main: #ffffff !important;
+            --text-muted: #ffff00 !important;
+            --gold: #ffff00 !important;
+            --gold-glow: none !important;
+            --neon-blue: #00ffff !important;
+            --neon-glow: none !important;
+            --btn-default: #111111 !important;
+            --correct-bg: #00ff00 !important;
+            --wrong-bg: #ff0000 !important;
+            --selected-bg: #ffff00 !important;
+        }
+        [data-accessibility="high-contrast"] * {
+            text-shadow: none !important;
+            box-shadow: none !important;
+        }
+        [data-accessibility="high-contrast"] .option-letter {
+            background: #000000 !important;
+            color: #00ffff !important;
+            border-color: #ffffff !important;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: var(--bg-glow);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 20px;
+            transition: background 0.5s ease;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none; opacity: 0.4;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1240px;
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: var(--radius);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,242,254,0.2);
+            padding: 30px;
+            position: relative;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+        }
+
+        .hidden { display: none !important; }
+
+        /* ==========================================================================
+           2. TOPO E MENUS
+           ========================================================================== */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 15px;
+        }
+
+        .game-logo-area {
+            font-weight: 900;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: var(--gold);
+            text-shadow: var(--gold-glow);
+        }
+
+        .sys-controls { display: flex; gap: 12px; }
+
+        .control-btn {
+            background: var(--btn-default);
+            border: 1px solid var(--panel-border);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        .control-btn:hover { transform: translateY(-2px); box-shadow: var(--neon-glow); }
+
+        .menu-screen { text-align: center; animation: viewFadeIn 0.5s ease-out; padding: 40px 10px; }
+        .menu-screen h1 {
+            font-size: var(--font-size-title); font-weight: 900;
+            background: linear-gradient(45deg, #ffd700, #ff8c00, #00f2fe);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 15px; letter-spacing: 2px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        }
+        .menu-screen .subtitle { font-size: 1.25rem; color: var(--text-muted); margin-bottom: 30px; font-style: italic; }
+
+        .player-input-area { margin-bottom: 30px; }
+        #player-name-input {
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: 2px solid var(--neon-blue);
+            background: rgba(0,0,0,0.4);
+            color: white;
+            text-align: center;
+            font-size: 1.2rem;
+            width: 100%;
+            max-width: 400px;
+            outline: none;
+            box-shadow: var(--neon-glow);
+            transition: all 0.3s ease;
+        }
+        #player-name-input:focus { border-color: var(--gold); box-shadow: var(--gold-glow); }
+        [data-theme="light"] #player-name-input { color: #000; background: #fff; }
+
+        .menu-buttons { display: flex; flex-direction: column; gap: 15px; max-width: 400px; margin: 0 auto; }
+        .menu-btn {
+            background: var(--btn-default); border: 2px solid var(--panel-border); color: var(--text-main);
+            padding: 16px 30px; font-size: 1.15rem; font-weight: 700; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease;
+        }
+        .menu-btn:hover { transform: scale(1.04); border-color: var(--gold); box-shadow: var(--gold-glow); }
+        .menu-btn.play-btn { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); border-color: #ffffff; }
+        .menu-btn.portal-btn { background: linear-gradient(135deg, #3a7bd5 0%, #3a6073 100%); border-color: rgba(255,255,255,0.4); }
+
+        .info-panel {
+            background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); border-radius: var(--radius);
+            padding: 25px; margin-top: 30px; text-align: left; animation: viewFadeIn 0.3s ease;
+            max-height: 350px; overflow-y: auto;
+        }
+        .info-panel h2 { color: var(--gold); margin-bottom: 15px; }
+        
+        .ranking-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .ranking-table th, .ranking-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; }
+        .ranking-table th { color: var(--gold); }
+        [data-theme="light"] .ranking-table td { border-bottom: 1px solid rgba(0,0,0,0.1); }
+
+        /* ==========================================================================
+           3. LAYOUT DO TABULEIRO
+           ========================================================================== */
+        .game-layout { display: grid; grid-template-columns: 1fr 320px; gap: 30px; animation: viewFadeIn 0.4s ease; }
+        .game-central { display: flex; flex-direction: column; justify-content: space-between; }
+
+        .game-status-strip { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .metric-card {
+            background: rgba(0,0,0,0.25); border: 1px solid var(--panel-border);
+            padding: 15px; border-radius: 12px; text-align: center;
+        }
+        .metric-card small { display: block; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
+        .metric-card span { font-size: 1.3rem; font-weight: 800; }
+
+        .question-container {
+            background: rgba(5, 15, 40, 0.75); border: 2px solid var(--panel-border);
+            padding: 30px; border-radius: var(--radius); font-size: var(--font-size-q);
+            font-weight: 700; line-height: 1.5; text-align: center; margin-bottom: 30px;
+            box-shadow: inset 0 0 15px rgba(0,242,254,0.1);
+        }
+
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 25px; }
+        .option-button {
+            background: var(--btn-default); border: 2px solid var(--panel-border); color: var(--text-main);
+            padding: 18px 25px; font-size: var(--font-size-opt); font-weight: 600; text-align: left;
+            border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 15px;
+            transition: all 0.2s ease;
+        }
+        .option-button:hover:not([disabled]) { border-color: var(--gold); transform: translateX(6px); box-shadow: var(--gold-glow); }
+        
+        .option-letter {
+            background: rgba(0, 242, 254, 0.15); color: var(--neon-blue); width: 35px; height: 35px;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%;
+            border: 1px solid var(--panel-border); font-weight: 800; flex-shrink: 0;
+        }
+
+        .game-sidebar { display: flex; flex-direction: column; gap: 25px; }
+        .sidebar-section { background: rgba(0,0,0,0.25); border: 1px solid var(--panel-border); border-radius: var(--radius); padding: 20px; }
+        .sidebar-section h3 {
+            font-size: 1rem; text-transform: uppercase; margin-bottom: 15px; color: var(--gold);
+            text-align: center; border-bottom: 1px solid rgba(0,242,254,0.2); padding-bottom: 8px;
+        }
+
+        .help-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .help-button {
+            background: var(--btn-default); border: 1px solid var(--panel-border); color: var(--text-main);
+            padding: 12px 6px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.85rem;
+            display: flex; flex-direction: column; align-items: center; gap: 6px; transition: all 0.2s ease;
+        }
+        .help-button:hover:not([disabled]) { border-color: var(--gold); box-shadow: var(--gold-glow); }
+        .help-button[disabled] { opacity: 0.35; cursor: not-allowed; filter: grayscale(1); }
+
+        .prize-ladder { display: flex; flex-direction: column; gap: 4px; max-height: 380px; overflow-y: auto; padding-right: 5px; }
+        .ladder-step {
+            display: flex; justify-content: space-between; padding: 8px 14px;
+            background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 0.9rem; font-weight: 600; color: var(--text-muted);
+        }
+        .ladder-step.active { background: linear-gradient(90deg, rgba(0,242,254,0.2) 0%, rgba(0,0,0,0) 100%); color: var(--neon-blue); font-weight: 800; border-left: 4px solid var(--neon-blue); }
+        .ladder-step.safe { color: var(--gold); }
+
+        .bottom-actions { display: flex; gap: 15px; margin-top: 10px; }
+        .action-btn { flex: 1; padding: 15px; font-weight: 700; font-size: 1rem; border-radius: 12px; cursor: pointer; border: none; color: white; transition: all 0.2s ease; }
+        .btn-stop { background: var(--warning-color); } .btn-stop:hover { background: #c05621; }
+        .btn-quit { background: #4a5568; } .btn-quit:hover { background: #2d3748; }
+
+        /* ==========================================================================
+           4. MODAIS E TELA FINAL
+           ========================================================================== */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 100; display: flex; justify-content: center; align-items: center;
+        }
+        .help-modal { background: var(--panel-bg); border: 2px solid var(--panel-border); padding: 30px; border-radius: var(--radius); max-width: 480px; width: 90%; text-align: center; }
+        
+        .cards-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .playing-card {
+            width: 75px; height: 110px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border: 2px solid var(--panel-border); border-radius: 10px; cursor: pointer; display: flex;
+            justify-content: center; align-items: center; font-weight: 800; font-size: 1.5rem; color: white; transition: all 0.3s ease;
+        }
+        .playing-card.flipped { background: #ffffff; color: #1a202c; cursor: default; }
+        
+        .chart-container { display: flex; flex-direction: column; gap: 10px; }
+        .chart-row { display: flex; align-items: center; gap: 15px; }
+        .chart-bar-wrap { flex: 1; background: rgba(255,255,255,0.1); height: 20px; border-radius: 10px; overflow: hidden; }
+        .chart-bar-fill { height: 100%; background: var(--neon-blue); width: 0%; transition: width 0.6s ease; }
+
+        .end-screen { text-align: center; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 600px; margin: 20px auto; }
+        .stat-box { background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); padding: 15px; border-radius: 12px; }
+
+        .option-button.correct-ans { background: var(--correct-bg) !important; color: white !important; border-color: white !important; animation: blink 0.2s 3; }
+        .option-button.wrong-ans { background: var(--wrong-bg) !important; color: white !important; border-color: white !important; }
+        .option-button.selected-ans { background: var(--selected-bg) !important; color: white !important; border-color: var(--gold) !important; }
+
+        @keyframes viewFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* ==========================================================================
+           5. RESPONSIVIDADE
+           ========================================================================== */
+        @media (max-width: 968px) {
+            .game-layout { grid-template-columns: 1fr; }
+            .game-sidebar { flex-direction: column-reverse; }
+            .prize-ladder { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-height: none; padding:0;}
+            .ladder-step { padding: 10px; text-align: center; justify-content: center; }
+            .ladder-step span:first-child { display: none; }
+            .ladder-step.active { border-left: none; border-bottom: 4px solid var(--neon-blue); }
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 5px; }
+            .container { padding: 15px; border-radius: 12px; }
+            :root { --font-size-title: 1.8rem; --font-size-q: 1.15rem; --font-size-opt: 1rem; }
+            .prize-ladder { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid { grid-template-columns: 1fr; }
+            .game-status-strip { gap: 10px; margin-bottom: 15px; }
+            .question-container { padding: 20px; }
+            .option-button { padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <div class="top-bar">
+            <div class="game-logo-area">📐 SHOW DA MATEMÁTICA</div>
+            <div class="sys-controls">
+                <button class="control-btn" id="sound-toggle-btn" onclick="GameEngine.toggleSound()">🔊 Som</button>
+                <button class="control-btn" onclick="GameEngine.toggleTheme()">🌓 Tema</button>
+                <button class="control-btn" onclick="GameEngine.toggleAccessibility()">👁️ Contraste</button>
+            </div>
+        </div>
+
+        <div id="view-menu" class="menu-screen">
+            <h1>SHOW DO MILHÃO DA MATEMÁTICA</h1>
+            <p class="subtitle">"Desafie seus conhecimentos, raciocínio lógico e conquiste o prêmio máximo!"</p>
+            
+            <div class="player-input-area">
+                <input type="text" id="player-name-input" placeholder="Digite seu nome para jogar..." autocomplete="off" maxlength="20">
+            </div>
+
+            <div class="menu-buttons">
+                <button class="menu-btn play-btn" onclick="GameEngine.initMatch()">▶ Iniciar Partida</button>
+                <button class="menu-btn" onclick="GameEngine.showRules()">📖 Como Jogar</button>
+                <button class="menu-btn" onclick="GameEngine.showRankings()">🏆 Melhores Pontuações</button>
+                <button class="menu-btn portal-btn" onclick="window.location.href='index.html'">🏠 Voltar ao Portal de Jogos</button>
+                <button class="menu-btn hidden" id="btn-close-panel" onclick="voltarMenu()">← Fechar Painel</button>
+            </div>
+            <div id="menu-info-box" class="info-panel hidden"></div>
+        </div>
+
+        <div id="view-game" class="game-layout hidden">
+            <div class="game-central">
+                <div class="game-status-strip">
+                    <div class="metric-card"><small>Nível Atual</small><span id="txt-game-difficulty">-</span></div>
+                    <div class="metric-card"><small>Prêmio Garantido</small><span id="txt-prize-safe" style="color: var(--gold);">R$ 0</span></div>
+                </div>
+
+                <div id="box-question" class="question-container">---</div>
+                <div id="box-options" class="options-grid"></div>
+
+                <div class="bottom-actions">
+                    <button class="action-btn btn-stop" onclick="GameEngine.executeStopAction()">✋ Parar e Levar Dinheiro</button>
+                    <button class="action-btn btn-quit" onclick="GameEngine.abortMatch()">🏳️ Desistir</button>
+                </div>
+            </div>
+
+            <div class="game-sidebar">
+                <div class="sidebar-section">
+                    <h3>Ajudas Disponíveis</h3>
+                    <div class="help-grid">
+                        <button class="help-button" id="help-btn-cards" onclick="GameEngine.useHelpCards()">🃏 Cartas</button>
+                        <button class="help-button" id="help-btn-students" onclick="GameEngine.useHelpStudents()">🎓 Alunos</button>
+                        <button class="help-button" id="help-btn-skip" onclick="GameEngine.useHelpSkip()">⏭️ Pular</button>
+                        <button class="help-button" id="help-btn-half" onclick="GameEngine.useHelpHalf()">✂️ Eliminar 2</button>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h3>Escada do Milhão</h3>
+                    <div id="box-ladder" class="prize-ladder"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-end" class="end-screen hidden">
+            <h2 id="end-title">FIM DE JOGO</h2>
+            <div style="font-size:4rem; margin:15px 0;">🏆</div>
+            <div id="end-stars" style="color:var(--gold); font-size:2.5rem; margin-bottom:20px;">⭐⭐⭐</div>
+
+            <div class="stats-grid">
+                <div class="stat-box"><label>Jogador</label><span id="end-val-name" style="font-weight:800; font-size:1.3rem; display:block;">---</span></div>
+                <div class="stat-box"><label>Prêmio Final</label><span id="end-val-prize" style="color: var(--gold); font-weight:800; font-size:1.3rem; display:block;">R$ 0</span></div>
+                <div class="stat-box"><label>Respostas Corretas</label><span id="end-val-hits" style="font-weight:800; font-size:1.3rem; display:block;">0</span></div>
+                <div class="stat-box"><label>Status do Ranking</label><span id="end-val-record" style="font-weight:800; font-size:1.1rem; display:block; color:var(--neon-blue);">Salvo</span></div>
+            </div>
+
+            <p id="end-motivation" style="font-style:italic; font-size:1.2rem; margin-bottom:30px; color:var(--text-muted); padding:0 15px;"></p>
+
+            <div class="menu-buttons" style="max-width: 350px;">
+                <button class="menu-btn play-btn" onclick="GameEngine.initMatch()">Jogar Novamente</button>
+                <button class="menu-btn" onclick="GameEngine.resetToMenu()">Ir para o Menu Principal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="context-modal" class="modal-overlay hidden">
+        <div class="help-modal" id="context-modal-content"></div>
+    </div>
+
+    <script>
+        function voltarMenu() {
+            AudioSystem.playTone(350, 'sine', 0.08);
+            const infoBox = document.getElementById('menu-info-box');
+            const closeBtn = document.getElementById('btn-close-panel');
+            if (infoBox) infoBox.classList.add('hidden');
+            if (closeBtn) closeBtn.classList.add('hidden');
+        }
+
+        /* ==========================================================================
+           NOVO MOTOR PROCEDURAL: VASTA VARIEDADE DE LÓGICAS E ESTRUTURAS
+           ========================================================================== */
+        const ProceduralGenerator = {
+            nomes: ["Ana", "Carlos", "Bruno", "Mariana", "Diego", "Beatriz", "Fernando", "Gabriel", "Júlia", "Lucas", "Amanda", "Rafael", "Pedro", "Sofia", "A Equipe Alfa", "O Laboratório", "A Escola"],
+            itens: ["livros", "canetas", "jogos", "moedas", "figurinhas", "maçãs", "camisetas", "ingressos", "amostras", "documentos"],
+            locais: ["na biblioteca", "na escola", "no shopping", "no laboratório", "no parque", "na lanchonete", "na fazenda", "no escritório"],
+            
+            randomChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; },
+            randomRange(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; },
+            gcd(a, b) { return b === 0 ? a : this.gcd(b, a % b); },
+
+            buildOptions(correct, distractors, isCurrency = false) {
+                let optionsSet = new Set();
+                let correctStr = isCurrency ? `R$ ${correct},00` : String(correct);
+                optionsSet.add(correctStr);
+
+                while (optionsSet.size < 4) {
+                    let alt = distractors.shift();
+                    if (alt === undefined || alt === correct || optionsSet.has(isCurrency ? `R$ ${alt},00` : String(alt))) {
+                        let offset = this.randomChoice([-5, -3, -2, -1, 1, 2, 3, 5, 10, -10]);
+                        alt = correct + offset;
+                        if (alt < 0 && correct > 0) alt = correct + Math.abs(offset);
+                    }
+                    optionsSet.add(isCurrency ? `R$ ${alt},00` : String(alt));
+                }
+
+                let options = Array.from(optionsSet);
+                options.sort(() => Math.random() - 0.5);
+                return { o: options, c: options.indexOf(correctStr) };
+            },
+
+            buildOptionsFraction(num, den) {
+                const mdc = (a, b) => b === 0 ? a : mdc(b, a % b);
+                let divisor = mdc(num, den);
+                let numS = num / divisor;
+                let denS = den / divisor;
+                let correta = `${numS}/${denS}`;
+                let opcoes = new Set([correta]);
+                
+                while(opcoes.size < 4) {
+                    let offsetN = this.randomChoice([-2, -1, 1, 2]);
+                    let offsetD = this.randomChoice([-2, -1, 1, 2]);
+                    let nFake = Math.max(1, numS + offsetN);
+                    let dFake = Math.max(2, denS + offsetD);
+                    if(nFake >= dFake) dFake = nFake + 1;
+                    opcoes.add(`${nFake}/${dFake}`);
+                }
+                let arr = Array.from(opcoes);
+                arr.sort(() => Math.random() - 0.5);
+                return { o: arr, c: arr.indexOf(correta) };
+            },
+
+            /* --- MÓDULOS FÁCEIS (12 Tipos diferentes) --- */
+            easyGenerators: [
+                function(self) {
+                    let n = self.randomChoice(self.nomes), loc = self.randomChoice(self.locais);
+                    let preco = self.randomRange(15, 35), pago = self.randomChoice([50, 100]);
+                    while(pago <= preco) pago += 50;
+                    return { q: `${n} comprou materiais ${loc} por R$ ${preco},00. Pagando com uma nota de R$ ${pago},00, qual o troco correto?`, ...self.buildOptions(pago - preco, [preco, pago - 10, pago - preco + 5], true) };
+                },
+                function(self) {
+                    let inicio = self.randomRange(5, 20), passo = self.randomRange(3, 8);
+                    let c = inicio + 4*passo;
+                    return { q: `Qual número completa o padrão lógico a seguir: ${inicio}, ${inicio+passo}, ${inicio+2*passo}, ${inicio+3*passo}, __ ?`, ...self.buildOptions(c, [c+passo, c-1, c+1]) };
+                },
+                function(self) {
+                    let n = self.randomChoice(self.nomes), it = self.randomChoice(self.itens);
+                    let v1 = self.randomRange(100, 250), v2 = self.randomRange(50, 150);
+                    return { q: `${n} organizou ${v1} ${it} na prateleira superior e ${v2} na inferior. Qual o total exato de ${it}?`, ...self.buildOptions(v1+v2, [v1-v2, v1+v2+10, v1]) };
+                },
+                function(self) {
+                    let lado = self.randomRange(8, 25);
+                    return { q: `Um espaço isolado possui formato de quadrado perfeito com ${lado} metros de lado. Quantos metros são necessários para cercar o contorno total?`, ...self.buildOptions(lado*4, [lado*2, lado*lado, lado*4+2]) };
+                },
+                function(self) {
+                    let n = self.randomChoice(self.nomes), loc = self.randomChoice(self.locais);
+                    let partes = self.randomRange(4, 8), qtd = self.randomRange(5, 12);
+                    let total = partes * qtd;
+                    return { q: `${n} precisa repartir igualmente ${total} pacotes entre ${partes} setores ${loc}. Quantos pacotes vão para cada setor?`, ...self.buildOptions(qtd, [qtd+2, total-partes, qtd-1]) };
+                },
+                function(self) {
+                    let base = self.randomRange(12, 30), mult = self.randomChoice([2, 3]);
+                    let termo = mult === 2 ? "o dobro" : "o triplo";
+                    return { q: `Uma máquina antiga processa ${base} itens por ciclo. A nova máquina consegue processar exatamente ${termo} dessa quantia. Quantos itens a nova processa?`, ...self.buildOptions(base*mult, [base+mult, base*mult-5, base]) };
+                },
+                function(self) {
+                    let horas = self.randomRange(2, 5), min = self.randomChoice([10, 20, 30]);
+                    return { q: `Um procedimento digital demora ${horas} horas e ${min} minutos. Se convertemos esse valor apenas para minutos, qual o resultado?`, ...self.buildOptions(horas*60+min, [horas*60, horas+min, horas*100+min]) };
+                },
+                function(self) {
+                    let n1 = self.randomChoice(self.nomes), i1 = self.randomRange(30, 50);
+                    let i2 = i1 - self.randomRange(5, 15);
+                    return { q: `${n1} tem ${i1} anos de idade. Sabendo que seu irmão mais novo tem ${i2} anos, qual a diferença exata de idade entre eles?`, ...self.buildOptions(i1-i2, [i1+i2, i1-i2+2, i1-i2-1]) };
+                },
+                function(self) {
+                    let pos = self.randomRange(15, 30);
+                    return { q: `Em uma fila, há ${pos-1} pessoas na frente de um cliente e ${pos-1} atrás dele. Qual é o total de pessoas na fila?`, ...self.buildOptions((pos-1)*2+1, [(pos-1)*2, pos*2, pos*2+1]) };
+                },
+                function(self) {
+                    let v = self.randomRange(20, 50) * 2;
+                    return { q: `Um reservatório continha ${v} litros de líquido. Após um vazamento, perdeu exatamente a metade. Quantos litros restaram?`, ...self.buildOptions(v/2, [v/3, v-10, v/2+5]) };
+                },
+                function(self) {
+                    let v1 = self.randomRange(30, 40), v2 = self.randomRange(50, 70);
+                    return { q: `Observando os dados: a Equipe A fez ${v1} pontos e a Equipe B fez ${v2} pontos. Quantos pontos a Equipe B fez a mais que a A?`, ...self.buildOptions(v2-v1, [v1+v2, v2, v2-v1+5]) };
+                },
+                function(self) {
+                    let num = self.randomRange(10, 20) * 2 + 1;
+                    return { q: `O número da sala principal é o menor número ÍMPAR maior que ${num-2}. Que número é esse?`, ...self.buildOptions(num, [num-1, num+1, num+2]) };
+                }
+            ],
+
+            /* --- MÓDULOS MÉDIOS (12 Tipos diferentes) --- */
+            mediumGenerators: [
+                function(self) {
+                    let preco = self.randomChoice([200, 300, 400, 500]), pct = self.randomChoice([10, 20, 25, 30]);
+                    return { q: `Um equipamento custa R$ ${preco},00, mas está com ${pct}% de desconto à vista. Qual o valor a pagar com desconto?`, ...self.buildOptions(preco - (preco*pct/100), [preco-pct, preco-(preco*pct/100)+20, preco], true) };
+                },
+                function(self) {
+                    let preco = self.randomChoice([100, 150, 200]), pct = self.randomChoice([10, 15, 20]);
+                    return { q: `O aluguel de um serviço era R$ ${preco},00 e sofreu reajuste (aumento) de ${pct}%. Qual o novo valor?`, ...self.buildOptions(preco + (preco*pct/100), [preco+pct, preco+(preco*pct/100)-10, preco], true) };
+                },
+                function(self) {
+                    let b = self.randomRange(12, 20), h = self.randomRange(5, 10);
+                    return { q: `Qual é a área total de um galpão retangular que mede ${b} metros de comprimento por ${h} metros de largura?`, ...self.buildOptions(b*h, [b+h, (b+h)*2, b*h-5]) };
+                },
+                function(self) {
+                    let n = self.randomRange(3, 5), v = self.randomRange(20, 40), m = self.randomRange(6, 9);
+                    return { q: `Se ${n} caixas iguais pesam juntas ${v} kg, quanto pesariam ${m} dessas caixas?`, ...self.buildOptions((v/n)*m, [v*m, (v/n)*m+5, (v/n)*m-2]) };
+                },
+                function(self) {
+                    let t1 = self.randomChoice([4, 6, 8]), t2 = self.randomChoice([5, 9, 10]);
+                    const lcm = (a, b) => (a * b) / self.gcd(a, b);
+                    let m = lcm(t1, t2);
+                    return { q: `Dois faróis piscam: um a cada ${t1} segundos e outro a cada ${t2} segundos. Se piscarem juntos agora, em quantos segundos piscarão juntos novamente?`, ...self.buildOptions(m, [t1+t2, t1*t2, m*2]) };
+                },
+                function(self) {
+                    let x = self.randomRange(5, 15), mult = self.randomRange(3, 5), soma = self.randomRange(4, 10);
+                    return { q: `Um enigma diz: 'O triplo de um número somado a ${soma} é igual a ${(x*3)+soma}'. Que número é esse?`.replace("triplo", mult===4?"quádruplo":mult===5?"quíntuplo":"triplo").replace("3", mult), ...self.buildOptions(x, [x+2, x-1, x*2]) };
+                },
+                function(self) {
+                    let v1 = self.randomRange(10, 20), v2 = self.randomRange(15, 25), v3 = self.randomRange(20, 30);
+                    let media = Math.round((v1+v2+v3)/3);
+                    return { q: `As temperaturas registradas em 3 dias foram ${v1}°C, ${v2}°C e ${v3}°C. Qual a média aproximada de temperatura?`, ...self.buildOptions(media, [media+3, media-2, v1+v2+v3]) };
+                },
+                function(self) {
+                    let verdes = self.randomRange(4, 8), vermelhas = self.randomRange(4, 8);
+                    return { q: `Uma urna tem ${verdes} bolas verdes e ${vermelhas} vermelhas. Qual a probabilidade exata de tirar uma verde?`, ...self.buildOptionsFraction(verdes, verdes+vermelhas) };
+                },
+                function(self) {
+                    let r1 = 2, r2 = 3, f = self.randomRange(5, 12);
+                    return { q: `A razão entre meninos e meninas na sala é de ${r1} para ${r2}. Se há ${r1*f} meninos, quantas são as meninas?`, ...self.buildOptions(r2*f, [r1*f+r2, (r1+r2)*f, r2*f+5]) };
+                },
+                function(self) {
+                    let a = self.randomRange(2, 5), b = self.randomRange(3, 6), c = self.randomRange(2, 4);
+                    return { q: `Qual o volume em m³ de um tanque retangular com ${a}m de altura, ${b}m de largura e ${c}m de comprimento?`, ...self.buildOptions(a*b*c, [a+b+c, a*b*c-2, a*b]) };
+                },
+                function(self) {
+                    let tot = self.randomChoice([60, 90, 120]);
+                    return { q: `De um total de ${tot} documentos, 2/3 já foram arquivados. Quantos documentos FORAM arquivados?`, ...self.buildOptions((tot/3)*2, [tot/3, tot/2, tot-10]) };
+                },
+                function(self) {
+                    let op1 = 4, d1 = self.randomChoice([6, 9, 12]);
+                    return { q: `Se ${op1} pintores pintam um prédio em ${d1} dias, em quantos dias ${op1*2} pintores fariam o mesmo serviço?`, ...self.buildOptions(d1/2, [d1*2, d1, d1/2+2]) };
+                }
+            ],
+
+            /* --- MÓDULOS DIFÍCEIS (12 Tipos diferentes) --- */
+            hardGenerators: [
+                function(self) {
+                    let c = self.randomRange(8, 15), m = self.randomRange(10, 20);
+                    let tot = c+m, rodas = (c*4)+(m*2);
+                    return { q: `No pátio há carros (4 rodas) e motos (2 rodas). Contam-se ${tot} veículos e ${rodas} rodas. Quantos CARROS há?`, ...self.buildOptions(c, [m, c+3, Math.floor(tot/2)]) };
+                },
+                function(self) {
+                    let n = self.randomRange(5, 7);
+                    let comb = n === 5 ? 10 : n === 6 ? 20 : 35;
+                    return { q: `De um grupo de ${n} pesquisadores, quantas comissões diferentes de exatamente 3 pessoas podem ser formadas?`, ...self.buildOptions(comb, [n*3, n*(n-1), comb+5]) };
+                },
+                function(self) {
+                    let v = 4, a = 3, tot = 7;
+                    return { q: `Uma caixa tem ${v} peças boas e ${a} com defeito. Retirando DUAS peças sem reposição, qual a probabilidade de ambas serem boas?`, ...self.buildOptionsFraction(v*(v-1), tot*(tot-1)) };
+                },
+                function(self) {
+                    return { q: `A máquina A faz o lote em 3 horas. A máquina B faz o mesmo lote em 6 horas. Trabalhando JUNTAS, em quantas horas farão o lote?`, ...self.buildOptions(2, [4.5, 9, 3]) };
+                },
+                function(self) {
+                    let p = self.randomChoice([10, 15, 20]);
+                    return { q: `Um robô está num fosso de ${p}m. De dia ele sobe 3m, mas à noite a bateria cai e ele desce 2m. Em quantos dias ele atinge o topo?`, ...self.buildOptions(p-2, [p, p/1, p-1]) };
+                },
+                function(self) {
+                    let start = self.randomRange(2, 4), r = self.randomChoice([2, 3]);
+                    let seq = [start, start*r, start*r*r, start*Math.pow(r,3)];
+                    return { q: `A sequência de crescimento bacteriano segue o padrão: ${seq.join(", ")}, ... Qual é o 5º termo correto?`, ...self.buildOptions(start*Math.pow(r,4), [start*Math.pow(r,5), seq[3]*2, seq[3]+r]) };
+                },
+                function(self) {
+                    let d = self.randomChoice([120, 180, 240]), t = self.randomChoice([2, 3, 4]);
+                    return { q: `Um comboio viajou ${d} km em ${t} horas. Para fazer a viagem em 1 hora a menos, qual deve ser a nova velocidade (km/h)?`, ...self.buildOptions(d/(t-1), [d/t, (d/t)+10, d/(t-1)-5]) };
+                },
+                function(self) {
+                    return { q: `Se 5 operários constroem 5 muros em 5 dias, quantos dias 10 operários levam para construir 10 muros no mesmo ritmo?`, ...self.buildOptions(5, [10, 1, 20]) };
+                },
+                function(self) {
+                    let t = 40, a = 25, b = 20;
+                    return { q: `Numa sala de ${t} alunos, ${a} estudam Inglês e ${b} estudam Espanhol. Todos estudam pelo menos um. Quantos estudam AMBOS?`, ...self.buildOptions((a+b)-t, [a+b, t-a, 10]) };
+                },
+                function(self) {
+                    let tot = 100;
+                    return { q: `João gastou metade do seu dinheiro (R$ ${tot}) no mercado. Depois, gastou metade do que SOBROU na farmácia. Quanto sobrou no final?`, ...self.buildOptions(tot/4, [tot/2, 0, tot/4+10], true) };
+                },
+                function(self) {
+                    let num = self.randomChoice([5, 6, 7]);
+                    return { q: `Pensei num número positivo. O quadrado dele menos ele mesmo resulta em ${num*num - num}. Que número é esse?`, ...self.buildOptions(num, [num+1, num*2, Math.sqrt(num*num-num)]) };
+                },
+                function(self) {
+                    return { q: `Três eventos ocorrem a cada 2, 3 e 5 horas. Se ocorreram juntos agora, em quantas horas ocorrerão juntos novamente?`, ...self.buildOptions(30, [10, 15, 60]) };
+                }
+            ],
+
+            generateBatch(difficulty, amount) {
+                let generatorPool = [];
+                if (difficulty === 'easy') generatorPool = [...this.easyGenerators];
+                else if (difficulty === 'medium') generatorPool = [...this.mediumGenerators];
+                else generatorPool = [...this.hardGenerators];
+                
+                generatorPool.sort(() => Math.random() - 0.5);
+                
+                let questions = [];
+                for (let i = 0; i < amount; i++) {
+                    let genFunc = generatorPool[i % generatorPool.length];
+                    questions.push(genFunc(this));
+                }
+                
+                return questions.sort(() => Math.random() - 0.5);
+            }
+        };
+
+        const PRIZE_LADDER_STRUCTURE = [
+            { label: "R$ 1.000", value: 1000, safe: 0 }, { label: "R$ 2.000", value: 2000, safe: 1000 },
+            { label: "R$ 3.000", value: 3000, safe: 2000 }, { label: "R$ 4.000", value: 4000, safe: 3000 },
+            { label: "R$ 5.000", value: 5000, safe: 4000 }, { label: "R$ 10.000", value: 10000, safe: 5000 },
+            { label: "R$ 20.000", value: 20000, safe: 5000 }, { label: "R$ 30.000", value: 30000, safe: 5000 },
+            { label: "R$ 40.000", value: 40000, safe: 5000 }, { label: "R$ 50.000", value: 50000, safe: 5000 },
+            { label: "R$ 100.000", value: 100000, safe: 50000 }, { label: "R$ 200.000", value: 200000, safe: 50000 },
+            { label: "R$ 300.000", value: 300000, safe: 50000 }, { label: "R$ 400.000", value: 400000, safe: 50000 },
+            { label: "R$ 500.000", value: 500000, safe: 50000 }, { label: "R$ 1 MILHÃO", value: 1000000, safe: 0 }
+        ];
+
+        /* WEB AUDIO API */
+        const AudioSystem = {
+            ctx: null, enabled: true,
+            init() { if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+            playTone(freq, type, duration, vol = 0.1) {
+                if(!this.enabled) return; this.init();
+                try {
+                    let osc = this.ctx.createOscillator(); let g = this.ctx.createGain();
+                    osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    g.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.00001, this.ctx.currentTime + duration);
+                    osc.connect(g); g.connect(this.ctx.destination);
+                    osc.start(); osc.stop(this.ctx.currentTime + duration);
+                } catch(e){}
+            },
+            playSuccess() { this.playTone(523.25, 'sine', 0.15); setTimeout(()=>this.playTone(659.25, 'sine', 0.3), 100); },
+            playError() { this.playTone(180, 'sawtooth', 0.4, 0.2); }
+        };
+
+        /* MOTOR DO JOGO */
+        const GameEngine = {
+            playerName: "",
+            matchQuestions: [],
+            currentStepIndex: 0,
+            matchStartTime: null,
+            totalHits: 0,
+            helpsUsed: { cards: false, students: false, skip: false, half: false },
+            skipsAvailable: 3,
+
+            init() {
+                BackgroundCanvas.start();
+                try {
+                    let lastPlayer = localStorage.getItem('math_show_last_player');
+                    if(lastPlayer) document.getElementById('player-name-input').value = lastPlayer;
+                } catch(e) {}
+            },
+
+            toggleSound() {
+                AudioSystem.enabled = !AudioSystem.enabled;
+                document.getElementById('sound-toggle-btn').textContent = AudioSystem.enabled ? "🔊 Som" : "🔇 Mutado";
+            },
+
+            toggleTheme() {
+                let current = document.documentElement.getAttribute('data-theme');
+                document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+            },
+
+            toggleAccessibility() {
+                let current = document.documentElement.getAttribute('data-accessibility');
+                document.documentElement.setAttribute('data-accessibility', current === 'high-contrast' ? 'normal' : 'high-contrast');
+            },
+
+            showRules() {
+                const box = document.getElementById('menu-info-box'); box.classList.remove('hidden');
+                document.getElementById('btn-close-panel').classList.remove('hidden');
+                box.innerHTML = `<h2>📖 Como Jogar</h2>
+                <p>O jogo gera 16 questões variadas de matemática usando dezenas de lógicas diferentes. Duas partidas nunca serão iguais!</p>
+                <p>Seus prêmios sobem em uma escada. Não há limite de tempo, leia e calcule com calma.</p>
+                <p>Use os recursos de ajuda na lateral se travar. Se errar, perderá parte do prêmio. Boa sorte!</p>`;
+            },
+
+            showRankings() {
+                const box = document.getElementById('menu-info-box'); box.classList.remove('hidden');
+                document.getElementById('btn-close-panel').classList.remove('hidden');
+                let list = [];
+                try { 
+                    let rawList = JSON.parse(localStorage.getItem('math_show_ranks')) || []; 
+                    list = rawList.filter(l => l && typeof l.n === 'string'); 
+                } catch(e) {}
+                
+                if(!list.length) { box.innerHTML = `<h2>🏆 Melhores Pontuações</h2><p>O ranking está vazio. Jogue e seja o primeiro!</p>`; return; }
+                
+                let html = `<h2>🏆 Melhores Pontuações</h2><table class="ranking-table"><tr><th>Pos</th><th>Jogador</th><th>Pontuação</th><th>Prêmio Máximo</th><th>Acertos</th><th>Data e Hora</th></tr>`;
+                list.forEach((l, i) => {
+                    html += `<tr><td>${i+1}º</td><td><strong>${l.n}</strong></td><td>${l.s || (l.h * 100)} pts</td><td style="color:var(--gold);">${l.p}</td><td>${l.h}</td><td style="font-size:0.8rem; color:var(--text-muted);">${l.d || ''}</td></tr>`;
+                });
+                html += `</table>`;
+                box.innerHTML = html;
+            },
+
+            initMatch() {
+                let inputName = document.getElementById('player-name-input').value.trim();
+                if(inputName.length < 2) {
+                    alert("⚠️ Por favor, digite seu nome (pelo menos 2 letras) para iniciar a partida e gravar no ranking!");
+                    document.getElementById('player-name-input').focus();
+                    return;
+                }
+                
+                this.playerName = inputName;
+                try { localStorage.setItem('math_show_last_player', this.playerName); } catch(e) {}
+
+                AudioSystem.playTone(440, 'sine', 0.1);
+                this.currentStepIndex = 0; 
+                this.totalHits = 0; 
+                this.matchStartTime = Date.now();
+                this.helpsUsed = { cards: false, students: false, skip: false, half: false };
+                this.skipsAvailable = 3;
+                
+                document.getElementById('help-btn-skip').textContent = `⏭️ Pular (${this.skipsAvailable})`;
+                ['cards','students','skip','half'].forEach(h => document.getElementById(`help-btn-${h}`).removeAttribute('disabled'));
+
+                let easyQ = ProceduralGenerator.generateBatch('easy', 5);
+                let medQ = ProceduralGenerator.generateBatch('medium', 5);
+                let hardQ = ProceduralGenerator.generateBatch('hard', 6);
+                
+                this.matchQuestions = [...easyQ, ...medQ, ...hardQ];
+
+                this.showScreen('view-game');
+                this.renderPrizeLadder();
+                this.loadCurrentStep();
+            },
+
+            showScreen(id) {
+                ['view-menu','view-game','view-end'].forEach(v => document.getElementById(v).classList.add('hidden'));
+                document.getElementById(id).classList.remove('hidden');
+            },
+
+            renderPrizeLadder() {
+                const b = document.getElementById('box-ladder'); b.innerHTML = '';
+                for(let i = PRIZE_LADDER_STRUCTURE.length - 1; i >= 0; i--) {
+                    b.innerHTML += `<div id="l-step-${i}" class="ladder-step ${i===4||i===9||i===14?'safe':''}"><span>${i+1}•</span><span>${PRIZE_LADDER_STRUCTURE[i].label}</span></div>`;
+                }
+            },
+
+            loadCurrentStep() {
+                document.getElementById('txt-game-difficulty').textContent = this.currentStepIndex < 5 ? "Fase 1 (Fácil)" : this.currentStepIndex < 10 ? "Fase 2 (Médio)" : "Fase 3 (Difícil)";
+                document.getElementById('txt-prize-safe').textContent = "R$ " + (this.currentStepIndex > 0 ? PRIZE_LADDER_STRUCTURE[this.currentStepIndex-1].value.toLocaleString('pt-BR') : "0");
+
+                document.querySelectorAll('.prize-ladder div').forEach(d => d.classList.remove('active'));
+                const currentLadderEl = document.getElementById(`l-step-${this.currentStepIndex}`);
+                if(currentLadderEl) currentLadderEl.classList.add('active');
+
+                let qData = this.matchQuestions[this.currentStepIndex];
+                
+                let introMsg = this.currentStepIndex === 0 ? `Vamos começar, ${this.playerName}! ` : 
+                               this.currentStepIndex === 10 ? `Atenção, ${this.playerName}, as coisas vão ficar mais difíceis! ` : 
+                               this.currentStepIndex === 15 ? `A PERGUNTA DO MILHÃO PARA ${this.playerName.toUpperCase()}! ` : "";
+                
+                document.getElementById('box-question').innerHTML = `<span style="color:var(--gold); display:block; font-size:1rem; margin-bottom:10px;">${introMsg}</span>${qData.q}`;
+
+                const bOpts = document.getElementById('box-options');
+                bOpts.innerHTML = '';
+                const letters = ['A','B','C','D'];
+
+                qData.o.forEach((opt, idx) => {
+                    let btn = document.createElement('button');
+                    btn.className = 'option-button';
+                    btn.id = `opt-btn-${idx}`;
+                    btn.innerHTML = `<span class="option-letter">${letters[idx]}</span> <span class="opt-text">${opt}</span>`;
+                    
+                    btn.addEventListener('click', () => { GameEngine.handleOptionSelection(idx); });
+                    bOpts.appendChild(btn);
+                });
+            },
+
+            handleOptionSelection(selectedIdx) {
+                document.querySelectorAll('.option-button').forEach(b => b.setAttribute('disabled', 'true'));
+                
+                const selBtn = document.getElementById(`opt-btn-${selectedIdx}`);
+                if(selBtn) selBtn.classList.add('selected-ans');
+
+                let qData = this.matchQuestions[this.currentStepIndex];
+
+                setTimeout(() => {
+                    if(selBtn) selBtn.classList.remove('selected-ans');
+                    if(selectedIdx === qData.c) {
+                        if(selBtn) selBtn.classList.add('correct-ans');
+                        AudioSystem.playSuccess();
+                        this.totalHits++;
+                        
+                        setTimeout(() => {
+                            this.currentStepIndex++;
+                            if(this.currentStepIndex >= PRIZE_LADDER_STRUCTURE.length) this.executeWinGame();
+                            else this.loadCurrentStep();
+                        }, 1500);
+                    } else {
+                        if(selBtn) selBtn.classList.add('wrong-ans');
+                        let correctBtn = document.getElementById(`opt-btn-${qData.c}`);
+                        if(correctBtn) correctBtn.classList.add('correct-ans');
+                        AudioSystem.playError();
+                        
+                        setTimeout(() => {
+                            this.executeFailGame("Resposta Incorreta!", PRIZE_LADDER_STRUCTURE[this.currentStepIndex].safe);
+                        }, 2500);
+                    }
+                }, 1200);
+            },
+
+            executeStopAction() {
+                if(this.currentStepIndex === 0) return alert(`${this.playerName}, você ainda não pontuou para poder parar!`);
+                this.finishMatchFlow("Decisão Sábia!", PRIZE_LADDER_STRUCTURE[this.currentStepIndex-1].value, `Parabéns pela prudência, ${this.playerName}! Você garantiu seu conhecimento e seu prêmio.`);
+            },
+
+            abortMatch() {
+                if(confirm(`Deseja realmente abandonar a partida, ${this.playerName}?`)) {
+                    this.finishMatchFlow("Desistência", 0, "Você abandonou o jogo. A persistência é a chave da matemática!");
+                }
+            },
+
+            executeFailGame(reason, prize = 0) {
+                this.finishMatchFlow(reason, prize, `Não desanime, ${this.playerName}! Pratique um pouco mais a interpretação lógica e os cálculos, e tente bater seu recorde.`);
+            },
+
+            executeWinGame() {
+                this.finishMatchFlow("MILIONÁRIO DA MATEMÁTICA!", 1000000, `Simplesmente formidável, ${this.playerName}! Domínio absoluto da lógica e dos cálculos matemáticos!`);
+            },
+
+            saveRankingAndGetStatus(finalValueNum, finalPrizeStr) {
+                try {
+                    let rawList = JSON.parse(localStorage.getItem('math_show_ranks')) || [];
+                    let list = rawList.filter(l => l && typeof l.n === 'string');
+                    
+                    let agora = new Date();
+                    let dataHora = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR');
+                    let pontuacao = this.totalHits * 100;
+                    let recordMsg = "Salvo com Sucesso";
+
+                    let existingIndex = list.findIndex(l => l.n.toLowerCase() === this.playerName.toLowerCase());
+
+                    if(existingIndex !== -1) {
+                        if(pontuacao > (list[existingIndex].s || 0) || (pontuacao === (list[existingIndex].s || 0) && finalValueNum > (list[existingIndex].v || 0))) {
+                            list[existingIndex] = { n: this.playerName, p: finalPrizeStr, v: finalValueNum, h: this.totalHits, s: pontuacao, d: dataHora };
+                            recordMsg = "Novo Recorde Pessoal!";
+                        } else {
+                            recordMsg = "Abaixo do seu recorde atual";
+                        }
+                    } else {
+                        list.push({ n: this.playerName, p: finalPrizeStr, v: finalValueNum, h: this.totalHits, s: pontuacao, d: dataHora });
+                    }
+
+                    list.sort((a, b) => (b.s || 0) - (a.s || 0) || (b.v || 0) - (a.v || 0) || b.h - a.h);
+                    
+                    localStorage.setItem('math_show_ranks', JSON.stringify(list.slice(0, 10)));
+                    return recordMsg;
+                } catch(e) { 
+                    console.warn(e); 
+                    return "Erro ao salvar"; 
+                }
+            },
+
+            finishMatchFlow(title, finalPrize, motivation) {
+                document.getElementById('end-title').textContent = title;
+                document.getElementById('end-val-name').textContent = this.playerName;
+                
+                let prizeStr = "R$ " + finalPrize.toLocaleString('pt-BR');
+                document.getElementById('end-val-prize').textContent = prizeStr;
+                document.getElementById('end-val-hits').textContent = this.totalHits;
+                
+                document.getElementById('end-motivation').textContent = motivation;
+
+                let statusRanking = this.saveRankingAndGetStatus(finalPrize, prizeStr);
+                document.getElementById('end-val-record').textContent = statusRanking;
+
+                this.showScreen('view-end');
+            },
+
+            resetToMenu() { 
+                document.getElementById('menu-info-box').classList.add('hidden'); 
+                document.getElementById('btn-close-panel').classList.add('hidden');
+                this.showScreen('view-menu'); 
+            },
+            
+            /* ==========================================================================
+               AJUDAS LÓGICAS 
+               ========================================================================== */
+            useHelpCards() {
+                this.helpsUsed.cards = true; document.getElementById('help-btn-cards').setAttribute('disabled','true');
+                const m = document.getElementById('context-modal'); m.classList.remove('hidden');
+                const c = document.getElementById('context-modal-content');
+                c.innerHTML = `<h4>🃏 Jogo das Cartas</h4><p>${this.playerName}, clique em uma carta para eliminar opções incorretas baseado na sorte.</p>
+                <div class="cards-container">` + [0,1,2,3].map(i => `<div class="playing-card" onclick="GameEngine.revealCard(${i}, this)">?</div>`).join('') + `</div>`;
+            },
+            revealCard(idx, el) {
+                if(el.classList.contains('flipped')) return;
+                el.classList.add('flipped');
+                let arr = [0,1,2,3].sort(()=>Math.random()-0.5);
+                let rem = arr[idx]; el.textContent = rem;
+                let qData = this.matchQuestions[this.currentStepIndex];
+                let count = 0;
+                setTimeout(() => {
+                    document.getElementById('context-modal').classList.add('hidden');
+                    for(let i=0; i<4; i++){
+                        if(i !== qData.c && count < rem) {
+                            let b = document.getElementById(`opt-btn-${i}`);
+                            if(b) { b.style.opacity = "0.2"; b.setAttribute('disabled','true'); count++; }
+                        }
+                    }
+                }, 1000);
+            },
+            useHelpStudents() {
+                this.helpsUsed.students = true; document.getElementById('help-btn-students').setAttribute('disabled','true');
+                const m = document.getElementById('context-modal'); m.classList.remove('hidden');
+                let qData = this.matchQuestions[this.currentStepIndex];
+                let v = [10,10,10,10]; v[qData.c] = 70;
+                const c = document.getElementById('context-modal-content');
+                c.innerHTML = `<h4>🎓 Votos dos Alunos</h4><div class="chart-container">` + [0,1,2,3].map(i => `
+                    <div class="chart-row"><span>${['A','B','C','D'][i]}</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:${v[i]}%"></div></div><span>${v[i]}%</span></div>
+                `).join('') + `</div><button class="control-btn" style="margin-top:15px;" onclick="document.getElementById('context-modal').classList.add('hidden')">Voltar ao Jogo</button>`;
+            },
+            useHelpSkip() {
+                if(this.skipsAvailable <= 0) return;
+                this.skipsAvailable--;
+                document.getElementById('help-btn-skip').textContent = `⏭️ Pular (${this.skipsAvailable})`;
+                if(this.skipsAvailable === 0) document.getElementById('help-btn-skip').setAttribute('disabled','true');
+                
+                let diff = this.currentStepIndex < 5 ? "easy" : this.currentStepIndex < 10 ? "medium" : "hard";
+                this.matchQuestions[this.currentStepIndex] = ProceduralGenerator.generateBatch(diff, 1)[0];
+                this.loadCurrentStep();
+            },
+            useHelpHalf() {
+                this.helpsUsed.half = true; document.getElementById('help-btn-half').setAttribute('disabled','true');
+                let qData = this.matchQuestions[this.currentStepIndex];
+                let count = 0;
+                for(let i=0; i<4; i++){
+                    if(i !== qData.c && count < 2) {
+                        let b = document.getElementById(`opt-btn-${i}`);
+                        if(b) { b.style.opacity = "0.2"; b.setAttribute('disabled','true'); count++; }
+                    }
+                }
+            }
+        };
+
+        /* CANVAS DE FUNDO ANIMADO */
+        const BackgroundCanvas = {
+            canvas: null, ctx: null, p: [],
+            start() {
+                this.canvas = document.getElementById('bg-canvas'); this.ctx = this.canvas.getContext('2d'); this.resize();
+                window.addEventListener('resize', () => this.resize());
+                for(let i=0; i<30; i++) {
+                    this.p.push({x: Math.random()*this.canvas.width, y: Math.random()*this.canvas.height, r: Math.random()*15+5, dx: (Math.random()-0.5)*0.5, dy: (Math.random()-0.5)*0.5});
+                }
+                this.loop();
+            },
+            resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; },
+            loop() {
+                this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+                this.ctx.fillStyle = "rgba(0, 242, 254, 0.1)";
+                this.p.forEach(pt => {
+                    pt.x += pt.dx; pt.y += pt.dy;
+                    if(pt.x<0 || pt.x>this.canvas.width) pt.dx *= -1;
+                    if(pt.y<0 || pt.y>this.canvas.height) pt.dy *= -1;
+                    this.ctx.beginPath(); this.ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI*2); this.ctx.fill();
+                });
+                requestAnimationFrame(() => this.loop());
+            }
+        };
+
+        window.onload = () => GameEngine.init();
+    </script>
+</body>
+</html>

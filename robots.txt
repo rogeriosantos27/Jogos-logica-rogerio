@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rogeriosantos27.github.io/jogos-logica-rogerio/sitemap.xml

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EDISCA: A Ilha do Conhecimento</title>
+    <title>EDISCA: Uma aventura educativa pelos caminhos da EDISCA.</title>
     <style>
         :root {
             --primary: #ff6b6b;
@@ -11,7 +11,7 @@
             --dark: #292f36;
             --light: #f7fff7;
             --accent: #ffe66d;
-            --ui-bg: rgba(41, 47, 54, 0.95);
+            --ui-bg: rgba(28, 33, 41, 0.96);
             --ui-border: #ffe66d;
         }
 
@@ -23,7 +23,7 @@
         body, html {
             width: 100%; height: 100%; overflow: hidden;
             font-family: 'Courier New', Courier, monospace;
-            background-color: #1a1a1a; color: var(--light);
+            background-color: #11141a; color: var(--light);
         }
 
         #game-wrapper {
@@ -33,13 +33,15 @@
 
         canvas {
             display: block; image-rendering: pixelated;
+            width: 100%; height: 100%;
         }
 
         /* UI e Modais */
         .screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 10; background: radial-gradient(circle, #4ecdc4 0%, #292f36 100%);
+            z-index: 10; 
+            background: radial-gradient(circle, #2d5a57 0%, #11141a 100%);
             transition: opacity 0.5s;
         }
 
@@ -49,13 +51,14 @@
         .form-card {
             background: var(--ui-bg); border: 4px solid var(--ui-border); border-radius: 16px;
             padding: 30px; width: 90%; max-width: 400px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
 
         input[type="text"] {
             width: 100%; padding: 12px; border-radius: 8px; border: 3px solid var(--secondary);
             font-size: 1.2rem; font-weight: bold; text-align: center; margin-bottom: 20px; outline: none;
             font-family: 'Courier New', Courier, monospace;
+            background: #fff; color: #000;
         }
 
         .game-btn {
@@ -74,44 +77,53 @@
         .hud-panel {
             background: var(--ui-bg); border: 3px solid var(--ui-border); border-radius: 12px;
             padding: 10px 15px; display: inline-flex; align-items: center; gap: 10px;
+            pointer-events: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         .hud-medals { display: flex; flex-wrap: wrap; gap: 5px; max-width: 320px; }
         .medal-icon {
-            width: 28px; height: 28px; background: rgba(255,255,255,0.1); border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; opacity: 0.5;
+            width: 32px; height: 32px; background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; opacity: 0.4;
+            transition: all 0.3s ease;
         }
         .medal-icon.active {
             opacity: 1; border: 2px solid var(--accent); background: radial-gradient(circle, #ffe66d 0%, #fca311 100%);
-            box-shadow: 0 0 10px var(--accent);
+            box-shadow: 0 0 12px var(--accent);
+            transform: scale(1.1);
         }
 
         #tutorial-hud {
-            position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7);
+            position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8);
             border: 2px solid var(--secondary); padding: 10px; border-radius: 10px;
             color: #fff; font-size: 0.9rem; text-align: right; z-index: 5;
+            pointer-events: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         /* Diálogos */
         .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 20;
+            background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: center; z-index: 20;
         }
         .dialog-box {
             background: var(--ui-bg); border: 5px solid var(--ui-border); border-radius: 20px;
             width: 90%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
         }
-        .dialog-header { background: var(--dark); padding: 15px; display: flex; align-items: center; gap: 15px; border-bottom: 3px solid var(--ui-border); }
+        .dialog-header { background: #1a1e24; padding: 15px; display: flex; align-items: center; gap: 15px; border-bottom: 3px solid var(--ui-border); }
         .dialog-avatar { width: 60px; height: 60px; background: var(--primary); border: 3px solid var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; }
-        .dialog-body { padding: 25px; font-size: 1.1rem; line-height: 1.6; overflow-y: auto; }
+        .dialog-body { padding: 25px; font-size: 1.1rem; line-height: 1.6; overflow-y: auto; color: var(--light); }
         .dialog-footer { padding: 15px; background: rgba(0,0,0,0.3); display: flex; justify-content: flex-end; gap: 10px; border-top: 2px solid rgba(255,255,255,0.1); }
-        .option-btn { background: var(--dark); border: 2px solid var(--secondary); color: var(--light); padding: 12px 15px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; text-align: left; font-size: 1rem; width: 100%; font-family: 'Courier New', Courier, monospace;}
-        .option-btn:hover { background: var(--secondary); color: var(--dark); }
+        .option-btn { background: var(--dark); border: 2px solid var(--secondary); color: var(--light); padding: 12px 15px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; text-align: left; font-size: 1rem; width: 100%; font-family: 'Courier New', Courier, monospace; transition: all 0.2s; }
+        .option-btn:hover { background: var(--secondary); color: var(--dark); font-weight: bold; transform: translateX(5px); }
 
         #interaction-prompt {
             position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);
-            background: var(--ui-bg); border: 3px solid var(--primary); padding: 10px 20px;
-            border-radius: 20px; font-weight: bold; display: none; z-index: 5; animation: pulse 1s infinite;
+            background: var(--ui-bg); border: 3px solid var(--primary); padding: 12px 24px;
+            border-radius: 24px; font-weight: bold; display: none; z-index: 5; animation: pulse 1s infinite;
+            text-align: center; color: var(--light);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
         @keyframes pulse { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } }
 
@@ -119,9 +131,11 @@
         #controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; z-index: 5; pointer-events: none; }
         .dpad, .action-pad { pointer-events: auto; }
         .dpad { display: grid; grid-template-columns: repeat(3, 55px); grid-template-rows: repeat(3, 55px); gap: 5px; }
-        .ctrl-btn { background: rgba(0,0,0,0.5); border: 3px solid rgba(255,255,255,0.7); border-radius: 10px; color: white; font-size: 1.5rem; display: flex; justify-content: center; align-items: center; }
+        .ctrl-btn { background: rgba(0,0,0,0.7); border: 3px solid rgba(255,255,255,0.7); border-radius: 10px; color: white; font-size: 1.5rem; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .ctrl-btn:active { background: var(--secondary); }
         .btn-up { grid-column: 2; grid-row: 1; } .btn-left { grid-column: 1; grid-row: 2; } .btn-down { grid-column: 2; grid-row: 3; } .btn-right { grid-column: 3; grid-row: 2; }
-        .action-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--primary); border: 4px solid var(--accent); color: var(--dark); font-weight: bold; display: flex; justify-content: center; align-items: center; align-self: flex-end; margin-bottom: 15px; }
+        .action-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--primary); border: 4px solid var(--accent); color: var(--dark); font-weight: bold; display: flex; justify-content: center; align-items: center; align-self: flex-end; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .action-btn:active { transform: scale(0.9); }
         @media (min-width: 800px) { #controls { display: none; } }
     </style>
 </head>
@@ -130,7 +144,7 @@
 <div id="game-wrapper">
     <div id="start-screen" class="screen">
         <h1>EDISCA</h1>
-        <h2>A Ilha do Conhecimento</h2>
+        <h2>Uma aventura educativa pelos caminhos da EDISCA.</h2>
         <div class="form-card">
             <p style="margin-bottom: 15px; color: var(--accent);">Identifique-se, educando(a):</p>
             <input type="text" id="player-name" value="Bailarino(a)" maxlength="15">
@@ -196,11 +210,57 @@
     let map = [];
     let camX = 0, camY = 0;
 
+    // Elementos estéticos adicionais para simular vento e vida ambiental
+    let leafParticles = [];
+    let butterflyParticles = [];
+    let birdParticles = [];
+    
+    function initAmbientParticles() {
+        // Inicializa folhas ao vento
+        for (let i = 0; i < 60; i++) {
+            leafParticles.push({
+                x: Math.random() * MAP_W,
+                y: Math.random() * MAP_H,
+                size: Math.random() * 3 + 2,
+                speedX: Math.random() * 1 + 0.5,
+                speedY: Math.random() * 0.5 + 0.2,
+                color: ["#4d7c0f", "#a3e635", "#84cc16", "#ca8a04"][Math.floor(Math.random() * 4)]
+            });
+        }
+        // Inicializa borboletas
+        for (let i = 0; i < 20; i++) {
+            butterflyParticles.push({
+                x: Math.random() * MAP_W,
+                y: Math.random() * MAP_H,
+                wingCycle: Math.random() * Math.PI,
+                color: ["#ffe66d", "#4ecdc4", "#ff6b6b"][Math.floor(Math.random() * 3)],
+                speedX: (Math.random() - 0.5) * 0.8,
+                speedY: (Math.random() - 0.5) * 0.8
+            });
+        }
+        // Inicializa passarinhos ocasionais
+        for (let i = 0; i < 5; i++) {
+            birdParticles.push({
+                x: Math.random() * MAP_W,
+                y: Math.random() * 10 * TILE,
+                wing: 0,
+                speed: Math.random() * 1.5 + 1
+            });
+        }
+    }
+
     function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', () => {
+        resizeCanvas();
+        if (window.innerWidth < 800 && document.getElementById("start-screen").style.display === "none") {
+            document.getElementById("controls").style.display = "flex";
+        } else {
+            document.getElementById("controls").style.display = "none";
+        }
+    });
     resizeCanvas();
 
     // ==========================================================================
@@ -319,7 +379,7 @@
         artes: { room: "Ateliê de Artes e Desenhos", npcs: ["Profª Gislene"], icon: "🎨",
             intro: "Bem-vindos ao ateliê de artes! Sou a Professora Gislene. Aqui transformamos papel, tintas e criatividade em lindos desenhos, pinturas e cenários para os nossos espetáculos. Preparados?",
             questions: [
-                { q: "Para desenhar um cenário com sensação de profundidade e distância, qual técnica de desenho devemos utilizar?", opts: ["Perspectiva linear com ponto de fuga", "Pintura abstrata", "Desenho às cegas", "Contorno simples"], ans: 0, exp: "A perspectiva com ponto de fuga é a técnica clássica do desenho para criar a ilusão de profundidade tridimensional em uma folha plana." },
+                { q: "Para desenhar um cenário com sensação de profundidade e distância, qual técnica de desenho devemos utilizar?", opts: ["Perspectiva linear com ponto de fuga", "Pintura abstrata", "Desenho às cegas", "Contorno simples"], ans: 0, exp: "A perspectiva com ponto de fuga é a técnica clássica do desenho para criar a illusions de profundidade tridimensional em uma folha plana." },
                 { q: "O cenário do espetáculo representa uma floresta viva. Misturando as tintas azul e amarela em nossa paleta, qual cor secundária obteremos para pintar as folhagens?", opts: ["Roxo", "Laranja", "Verde", "Marrom"], ans: 2, exp: "A mistura das cores primárias azul e amarelo gera a cor secundária verde, perfeita para os elementos da natureza!" },
                 { q: "Para fazer sombreados suaves e degradês realistas em um desenho a grafite, qual tipo de lápis é o mais adequado por ter a grafite mais macia e escura?", opts: ["Lápis 2H", "Lápis HB", "Lápis 6B", "Lapiseira 0.5 com grafite duro"], ans: 2, exp: "Os lápis da linha B (como o 6B) possuem grafite mais macia e escura, ideal para criar sombras, profundidade e texturas no papel." },
                 { q: "Estamos desenhando uma máscara teatral simétrica. O que significa garantir a simetria no desenho?", opts: ["Fazer um lado completamente diferente do outro", "Garantir que os dois lados divididos ao meio sejam correspondentes e equilibrados", "Pintar tudo com uma única cor", "Desenhar sem usar linhas"], ans: 1, exp: "A simetria em artes visuais cria um equilíbrio perfeito, onde o lado esquerdo espelha o lado direito harmoniosamente." },
@@ -364,7 +424,7 @@
         saude: { room: "Saúde", npcs: ["Profª Lorena", "Profª Livia"], icon: "❤️",
             intro: "Saúde física e mental em primeiro lugar! Somos as Professoras Lorena e Livia. Cuidamos das lesões e do bem-estar psicológico de nossos talentos. Resolvam esses casos clínicos!",
             questions: [
-                { q: "Um bailarino torceu o tornozelo na aula. Para estancar o inchaço nos primeiros 15 minutos, a fisioterapia aplica:", opts: ["Bolsa de água quente", "Gelo (crioterapia)", "Massagear com força", "Mandar ele voltar a dançar"], ans: 1, exp: "O gelo contrai os vasos sanguíneos, diminuindo imediatamente a inflamação e a dor no momento do trauma." },
+                { q: "Um bailarino torceu o fluxo no tornozelo na aula. Para estancar o inchaço nos primeiros 15 minutos, a fisioterapia aplica:", opts: ["Bolsa de água quente", "Gelo (crioterapia)", "Massagear com força", "Mandar ele voltar a dançar"], ans: 1, exp: "O gelo contrai os vasos sanguíneos, diminuindo imediatamente a inflamação e a dor no momento do trauma." },
                 { q: "Na psicologia escolar, um aluno chega chorando muito por um problema familiar. Qual é a primeira etapa do atendimento?", opts: ["Dar conselhos rápidos e mandar voltar para a aula", "Ouvir ativamente e oferecer um espaço seguro de acolhimento emocional", "Brigar com o aluno", "Ignorar e falar de dança"], ans: 1, exp: "A escuta ativa e o acolhimento sem julgamentos formam a base do suporte psicológico na EDISCA." },
                 { q: "O ensaio do espetáculo é intenso e dura 4 horas. A sala é quente. O que deve ser feito logisticamente para evitar desidratação e cãibras?", opts: ["Beber apenas no final das 4h", "Paradas curtas e programadas para ingestão de água", "Beber 3 litros de uma vez", "Comer salgado"], ans: 1, exp: "A hidratação constante mantém os músculos oxigenados e previne lesões durante o esforço extremo." },
                 { q: "Qual postura corporal é ensinada na fisioterapia para proteger a coluna de uma costureira ou funcionário que trabalha muito tempo sentado?", opts: ["Sentar na ponta da cadeira com os ombros curvados", "Apoiar a lombar no encosto e manter os pés no chão", "Cruzar as pernas o dia todo", "Sentar no chão"], ans: 1, exp: "A ergonomia (pés apoiados e coluna reta) distribui o peso do corpo e evita compressões na coluna vertebral." },
@@ -379,12 +439,12 @@
                 { q: "A secretaria recebe um e-mail com o título 'Urgente: Altere sua senha clicando neste link' enviado por um endereço desconhecido. O que fazer?", opts: ["Clicar correndo e digitar a senha de administrador", "Não clicar, alertar o Prof. Vinicius de TI e marcar como spam/phishing", "Encaminhar para o grupo de pais", "Excluir o computador"], ans: 1, exp: "Ataques de Phishing tentam enganar usuários com urgências falsas. Desconfie, não clique e acione o suporte de TI." },
                 { q: "Se temos um plano de banda de internet de 600 Megas e precisamos distribuí-la igualmente entre 6 salas com computadores de aula. Quanto cada sala recebe?", opts: ["50 Megas", "100 Megas", "150 Megas", "600 Megas"], ans: 1, exp: "Dividindo 600 Megas de banda por 6 setores, obtemos 100 Megas por setor para garantir conectividade estável para todos." }
             ]},
-        brecho: { room: "Brechó Segundo Ato", npcs: ["Profª Marina, Prof. Pedro"], icon: "🛍️",
+        brecho: { room: "Brechó Segundo Ato", npcs: ["Profª Marina", "Prof. Pedro"], icon: "🛍️",
             intro: "Seja muito bem-vindo ao Brechó Segundo Ato! Somos Marina e Pedro. Aqui damos uma nova vida a roupas e calçados doados. Os lucros de nossas vendas sustentam diretamente nossos espetáculos. Vamos ao caixa?",
             questions: [
                 { q: "Ao receber uma sacola cheia de doações no Brechó Segundo Ato, qual é o fluxo lógico inicial de processamento?", opts: ["Vender na calçada imediatamente", "Fazer a triagem (verificar estado, higienizar, definir preço justo e etiquetar)", "Guardar em caixas sem abrir", "Devolver ao doador"], ans: 1, exp: "A triagem profissional garante que apenas roupas excelentes e limpas fiquem nas araras, valorizando o brechó." },
                 { q: "Um cliente compra uma jaqueta de R$ 35,00 e um cinto de R$ 15,00. Ele paga com uma nota de R$ 100,00. Quanto você deve devolver de troco?", opts: ["R$ 30,00", "R$ 40,00", "R$ 50,00", "R$ 60,00"], ans: 2, exp: "O total da compra é R$ 50,00 (35 + 15). Portanto, o troco exato a ser devolvido é de R$ 50,00." },
-                { q: "Para otimizar o espaço físico do Brechó e impulsionar as vendas que financiam as oficinas, qual atitude de vitrinismo é correta?", opts: ["Deixar as roupas misturadas no chão", "Exibir as melhores peças em uma vitrine limpa, combinando estilos e cores", "Esconder as etiquetas de preço", "Apagar as luzes da sala"], ans: 1, exp: "Uma exposição limpa e estilizada valoriza o brechó, atrai o olhar dos clientes e gera mais recursos para a escola." },
+                { q: "Para otimizar o espaço físico do Brechó e impulsionar as vendas que financiam as oficinas, qual atitude de vitrinismo é correta?", opts: ["Deixar as roupas misturadas no chão", "Exibir as melhores peças em uma vitrine limpa, combinando styles e cores", "Esconder as etiquetas de preço", "Apagar as luzes da sala"], ans: 1, exp: "Uma exposição limpa e estilizada valoriza o brechó, atrai o olhar dos clientes e gera mais recursos para a escola." },
                 { q: "A filosofia do nosso Brechó Segundo Ato é fortemente focada em moda sustentável. Ela se apoia em quais conceitos fundamentais?", opts: ["Acumular, ostentar e descartar", "Reduzir o consumo desenfreado, Reutilizar peças e Reciclar materiais", "Copiar, costurar e raspar", "Esquecer, perder e comprar"], ans: 1, exp: "Reduzir, Reutilizar e Reciclar formam a base da economia circular e sustentável praticada em nosso brechó." },
                 { q: "Todo o dinheiro arrecadado com as vendas diárias das peças do Brechó Segundo Ato é revertido para:", opts: ["Comprar itens de luxo para a secretaria", "Financiar passagens, sapatilhas, figurinos e lanches para as apresentações de vocês", "A conta pessoal da gerência", "Dividir igualmente entre marcas famosas"], ans: 1, exp: "O brechó é uma iniciativa social. Todo o lucro alimenta diretamente o sonho e o desenvolvimento dos nossos educandos." }
             ]},
@@ -417,122 +477,121 @@
 
     const player = { name: "Bailarino(a)", x: 35 * TILE, y: 15 * TILE, width: 24, height: 38, speed: 6, score: 0 };
 
-    // Definição dos perfis de estilo dos NPCs - Corrigido os gêneros e adicionado os novos professores solicitados
+    // PERFIS FISIOLÓGICOS E ESTILOS ORIGINAIS DO SEU NPC
     const npcLocations = {
         portaria: { 
             x: 35*TILE, y: 11*TILE, 
             npcs: [
-                { skin: "#8d5524", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#000", hStyle: 1, glasses: true }, // Prof. Junior (Masculino)
-                { skin: "#f1c27d", shirt: "#f472b6", pants: "#1e1b4b", hair: "#b55239", hStyle: 2, glasses: false } // Prof. Cris (Masculino)
+                { skin: "#8d5524", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#000", hStyle: 1, glasses: true }, // Prof. Junior
+                { skin: "#f1c27d", shirt: "#f472b6", pants: "#1e1b4b", hair: "#b55239", hStyle: 2, glasses: false } // Prof. Cris
             ]
         },
         secretaria: { 
             x: 15*TILE, y: 22*TILE, 
             npcs: [
-                { skin: "#ffdbac", shirt: "#f472b6", pants: "#000", hair: "#b55239", hStyle: 2, glasses: true } // Profª Gesliane (Feminino)
+                { skin: "#ffdbac", shirt: "#f472b6", pants: "#000", hair: "#b55239", hStyle: 2, glasses: true } // Profª Gesliane
             ]
         },
         diretoria: { 
             x: 55*TILE, y: 22*TILE, 
             npcs: [
-                { skin: "#e0ac69", shirt: "#10b981", pants: "#064e3b", hair: "#000", hStyle: 3, glasses: false }, // Profª Andrea (Feminino)
-                { skin: "#8d5524", shirt: "#ef4444", pants: "#000", hair: "#4a3018", hStyle: 2, glasses: true },  // Profª Claudia (Feminino)
-                { skin: "#ffdbac", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#fcd34d", hStyle: 3, glasses: false }, // Dirª Dora (Feminino)
-                { skin: "#f1c27d", shirt: "#ec4899", pants: "#3f1212", hair: "#b55239", hStyle: 2, glasses: false }  // Profª Amanda (Feminino)
+                { skin: "#e0ac69", shirt: "#10b981", pants: "#064e3b", hair: "#000", hStyle: 3, glasses: false }, // Profª Andrea
+                { skin: "#8d5524", shirt: "#ef4444", pants: "#000", hair: "#4a3018", hStyle: 2, glasses: true },  // Profª Claudia
+                { skin: "#ffdbac", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#fcd34d", hStyle: 3, glasses: false }, // Dirª Dora
+                { skin: "#f1c27d", shirt: "#ec4899", pants: "#3f1212", hair: "#b55239", hStyle: 2, glasses: false }  // Profª Amanda
             ]
         },
         cozinha: { 
             x: 15*TILE, y: 34*TILE, 
             npcs: [
-                { skin: "#c68642", shirt: "#fef08a", pants: "#000", hair: "#4a3018", hStyle: 2, glasses: false }, // Profª Aurea (Feminino)
-                { skin: "#ffdbac", shirt: "#e0ac69", pants: "#1e1b4b", hair: "#fcd34d", hStyle: 3, glasses: false } // Profª Daiane (Feminino)
+                { skin: "#c68642", shirt: "#fef08a", pants: "#000", hair: "#4a3018", hStyle: 2, glasses: false }, // Profª Aurea
+                { skin: "#ffdbac", shirt: "#e0ac69", pants: "#1e1b4b", hair: "#fcd34d", hStyle: 3, glasses: false } // Profª Daiane
             ]
         },
         reforco: { 
             x: 55*TILE, y: 34*TILE, 
             npcs: [
-                { skin: "#f1c27d", shirt: "#6366f1", pants: "#1e1b4b", hair: "#6b7280", hStyle: 1, glasses: true } // Prof. Rogério (Masculino)
+                { skin: "#f1c27d", shirt: "#6366f1", pants: "#1e1b4b", hair: "#6b7280", hStyle: 1, glasses: true } // Prof. Rogério
             ]
         },
         financeiro: { 
             x: 15*TILE, y: 46*TILE, 
             npcs: [
-                { skin: "#8d5524", shirt: "#facc15", pants: "#713f12", hair: "#000", hStyle: 2, glasses: true }, // Profª Clecia (Feminino)
-                { skin: "#ffdbac", shirt: "#a855f7", pants: "#4c1d95", hair: "#b55239", hStyle: 3, glasses: false }, // Profª Vanessa (Feminino)
-                { skin: "#e0ac69", shirt: "#2dd4bf", pants: "#134e4a", hair: "#000", hStyle: 2, glasses: true }  // Profª Flaviane (Feminino)
+                { skin: "#8d5524", shirt: "#facc15", pants: "#713f12", hair: "#000", hStyle: 2, glasses: true }, // Profª Clecia
+                { skin: "#ffdbac", shirt: "#a855f7", pants: "#4c1d95", hair: "#b55239", hStyle: 3, glasses: false }, // Profª Vanessa
+                { skin: "#e0ac69", shirt: "#2dd4bf", pants: "#134e4a", hair: "#000", hStyle: 2, glasses: true }  // Profª Flaviane
             ]
         },
         artes: { 
             x: 55*TILE, y: 46*TILE, 
             npcs: [
-                { skin: "#ffdbac", shirt: "#a855f7", pants: "#4c1d95", hair: "#fcd34d", hStyle: 3, glasses: false } // Profª Gislene (Feminino)
+                { skin: "#ffdbac", shirt: "#a855f7", pants: "#4c1d95", hair: "#fcd34d", hStyle: 3, glasses: false } // Profª Gislene
             ]
         },
         danca: { 
             x: 25*TILE, y: 58*TILE, 
             npcs: [
-                { skin: "#e0ac69", shirt: "#ef4444", pants: "#000", hair: "#000", hStyle: 1, glasses: false },   // Prof. Anderson (Masculino)
-                { skin: "#ffdbac", shirt: "#000", pants: "#52525b", hair: "#a8a29e", hStyle: 1, glasses: true },   // Prof. Jessy (Masculino)
-                { skin: "#c68642", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#4a3018", hStyle: 1, glasses: false }, // Prof. Vitor (Masculino)
-                { skin: "#f1c27d", shirt: "#10b981", pants: "#064e3b", hair: "#6b7280", hStyle: 1, glasses: true }  // Prof. Daniel (Masculino)
+                { skin: "#e0ac69", shirt: "#ef4444", pants: "#000", hair: "#000", hStyle: 1, glasses: false },   // Prof. Anderson
+                { skin: "#ffdbac", shirt: "#000", pants: "#52525b", hair: "#a8a29e", hStyle: 1, glasses: true },   // Prof. Jessy
+                { skin: "#c68642", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#4a3018", hStyle: 1, glasses: false }, // Prof. Vitor
+                { skin: "#f1c27d", shirt: "#10b981", pants: "#064e3b", hair: "#6b7280", hStyle: 1, glasses: true }  // Prof. Daniel
             ]
         },
         teatro: { 
             x: 45*TILE, y: 58*TILE, 
             npcs: [
-                { skin: "#ffdbac", shirt: "#a855f7", pants: "#1e1b4b", hair: "#b55239", hStyle: 3, glasses: true },  // Coordenadora Mayra (Feminino)
-                { skin: "#e0ac69", shirt: "#f472b6", pants: "#000", hair: "#000", hStyle: 2, glasses: false },       // Profª Hariane (Feminino)
-                { skin: "#8d5524", shirt: "#2dd4bf", pants: "#134e4a", hair: "#4a3018", hStyle: 2, glasses: false }, // Profª Adrielly (Feminino)
-                { skin: "#f1c27d", shirt: "#fef08a", pants: "#1e1b4b", hair: "#fcd34d", hStyle: 3, glasses: true }   // Profª Gabrielle (Feminino)
+                { skin: "#ffdbac", shirt: "#a855f7", pants: "#1e1b4b", hair: "#b55239", hStyle: 3, glasses: true },  // Coordenadora Mayra
+                { skin: "#e0ac69", shirt: "#f472b6", pants: "#000", hair: "#000", hStyle: 2, glasses: false },       // Profª Hariane
+                { skin: "#8d5524", shirt: "#2dd4bf", pants: "#134e4a", hair: "#4a3018", hStyle: 2, glasses: false }, // Profª Adrielly
+                { skin: "#f1c27d", shirt: "#fef08a", pants: "#1e1b4b", hair: "#fcd34d", hStyle: 3, glasses: true }   // Profª Gabrielle
             ]
         },
         saude: { 
             x: 10*TILE, y: 58*TILE, 
             npcs: [
-                { skin: "#c68642", shirt: "#2dd4bf", pants: "#134e4a", hair: "#4a3018", hStyle: 2, glasses: false }, // Profª Lorena (Feminino)
-                { skin: "#ffdbac", shirt: "#ec4899", pants: "#4c0519", hair: "#fcd34d", hStyle: 3, glasses: true }  // Profª Livia (Feminino)
+                { skin: "#c68642", shirt: "#2dd4bf", pants: "#134e4a", hair: "#4a3018", hStyle: 2, glasses: false }, // Profª Lorena
+                { skin: "#ffdbac", shirt: "#ec4899", pants: "#4c0519", hair: "#fcd34d", hStyle: 3, glasses: true }  // Profª Livia
             ]
         },
         biblioteca: { 
             x: 60*TILE, y: 58*TILE, 
             npcs: [
-                { skin: "#8d5524", shirt: "#94a3b8", pants: "#0f172a", hair: "#000", hStyle: 2, glasses: true }, // Profª Neile (Feminino)
-                { skin: "#ffdbac", shirt: "#ec4899", pants: "#1e1b4b", hair: "#4a3018", hStyle: 3, glasses: false } // Profª Thafilla (Feminino)
+                { skin: "#8d5524", shirt: "#94a3b8", pants: "#0f172a", hair: "#000", hStyle: 2, glasses: true }, // Profª Neile
+                { skin: "#ffdbac", shirt: "#ec4899", pants: "#1e1b4b", hair: "#4a3018", hStyle: 3, glasses: false } // Profª Thafilla
             ]
         },
         jardim: { 
             x: 35*TILE, y: 60*TILE, 
             npcs: [
-                { skin: "#f1c27d", shirt: "#84cc16", pants: "#3f6212", hair: "#4a3018", hStyle: 2, glasses: false }, // Profª Fátima (Feminino)
-                { skin: "#e0ac69", shirt: "#1e293b", pants: "#0f172a", hair: "#000", hStyle: 1, glasses: false },    // Prof. João (Masculino)
-                { skin: "#ffdbac", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#6b7280", hStyle: 1, glasses: true },   // Prof. Igor (Masculino)
-                { skin: "#8d5524", shirt: "#059669", pants: "#064e3b", hair: "#000", hStyle: 1, glasses: false }     // Prof. Clemilson (Masculino)
+                { skin: "#f1c27d", shirt: "#84cc16", pants: "#3f6212", hair: "#4a3018", hStyle: 2, glasses: false }, // Profª Fátima
+                { skin: "#e0ac69", shirt: "#1e293b", pants: "#0f172a", hair: "#000", hStyle: 1, glasses: false },    // Prof. João
+                { skin: "#ffdbac", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#6b7280", hStyle: 1, glasses: true },   // Prof. Igor
+                { skin: "#8d5524", shirt: "#059669", pants: "#064e3b", hair: "#000", hStyle: 1, glasses: false }     // Prof. Clemilson
             ]
         },
-        // Configuração visual das novas salas
         ti: {
             x: 25*TILE, y: 20*TILE,
             npcs: [
-                { skin: "#ffdbac", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#000", hStyle: 1, glasses: true } // Prof. Vinicius (Masculino)
+                { skin: "#ffdbac", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#000", hStyle: 1, glasses: true } // Prof. Vinicius
             ]
         },
-brecho: {
+        brecho: {
             x: 44*TILE, y: 20*TILE,
             npcs: [
-                { skin: "#f1c27d", shirt: "#ec4899", pants: "#000", hair: "#b55239", hStyle: 2, glasses: false }, // Profª Marina (Feminino)
-                { skin: "#ffdbac", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#000", hStyle: 1, glasses: true }  // Prof. Pedro (Masculino)
+                { skin: "#f1c27d", shirt: "#ec4899", pants: "#000", hair: "#b55239", hStyle: 2, glasses: false }, // Profª Marina
+                { skin: "#ffdbac", shirt: "#3b82f6", pants: "#1e3a8a", hair: "#000", hStyle: 1, glasses: true }  // Prof. Pedro
             ]
         },
         comunicacao: {
             x: 25*TILE, y: 32*TILE,
             npcs: [
-                { skin: "#e0ac69", shirt: "#2dd4bf", pants: "#134e4a", hair: "#fcd34d", hStyle: 3, glasses: true } // Profª Isabelle (Feminino)
+                { skin: "#e0ac69", shirt: "#2dd4bf", pants: "#134e4a", hair: "#fcd34d", hStyle: 3, glasses: true } // Profª Isabelle
             ]
         },
         refeitorio: {
             x: 44*TILE, y: 32*TILE,
             npcs: [
-                { skin: "#ffdbac", shirt: "#fef08a", pants: "#1e1b4b", hair: "#4a3018", hStyle: 2, glasses: false } // Profª Jaqueline (Feminino)
+                { skin: "#ffdbac", shirt: "#fef08a", pants: "#1e1b4b", hair: "#4a3018", hStyle: 2, glasses: false } // Profª Jaqueline
             ]
         }
     };
@@ -540,7 +599,7 @@ brecho: {
     const keys = { up: false, down: false, left: false, right: false, action: false };
 
     // ==========================================================================
-    // SISTEMA DE INPUT (COMPATIBILIDADE MULTI-TOQUE MOBILE SEM TRAVAMENTOS)
+    // SISTEMA DE INPUT (COMPATIBILIDADE MULTI-TOQUE MOBILE SEM CONFLITOS DE EVENTO)
     // ==========================================================================
     function setupInput() {
         const setKey = (k, state) => {
@@ -563,6 +622,7 @@ brecho: {
         touchMappings.forEach(mapping => {
             const btn = document.getElementById(mapping.id);
             if (btn) {
+                // Impede o comportamento padrão de zoom e rolagem no mobile de forma focada e limpa
                 btn.addEventListener("touchstart", (e) => {
                     e.preventDefault();
                     keys[mapping.key] = true;
@@ -578,6 +638,7 @@ brecho: {
                     keys[mapping.key] = false;
                 }, { passive: false });
 
+                // Eventos de Mouse como Fallback para testes rápidos ou híbridos
                 btn.addEventListener("mousedown", (e) => {
                     keys[mapping.key] = true;
                 });
@@ -624,6 +685,7 @@ brecho: {
         if (keys.left) dx = -player.speed;
         if (keys.right) dx = player.speed;
 
+        // Movimento suavizado em 8 direções com colisão individualizada por eixo
         if (dx !== 0 && !checkCollision(player.x + dx, player.y)) player.x += dx;
         if (dy !== 0 && !checkCollision(player.x, player.y + dy)) player.y += dy;
 
@@ -631,6 +693,36 @@ brecho: {
         camY = Math.max(0, Math.min(player.y - canvas.height / 2, MAP_H - canvas.height));
 
         checkProximity();
+        updateParticles();
+    }
+
+    function updateParticles() {
+        // Atualização de partículas estéticas do ecossistema
+        leafParticles.forEach(p => {
+            p.x += p.speedX;
+            p.y += p.speedY;
+            if (p.x > MAP_W) p.x = 0;
+            if (p.y > MAP_H) p.y = 0;
+        });
+
+        butterflyParticles.forEach(p => {
+            p.x += p.speedX + Math.sin(Date.now() / 300) * 0.2;
+            p.y += p.speedY + Math.cos(Date.now() / 300) * 0.2;
+            p.wingCycle += 0.2;
+            if (p.x < 0) p.x = MAP_W;
+            if (p.x > MAP_W) p.x = 0;
+            if (p.y < 0) p.y = MAP_H;
+            if (p.y > MAP_H) p.y = 0;
+        });
+
+        birdParticles.forEach(p => {
+            p.x += p.speed;
+            p.wing = Math.sin(Date.now() / 50);
+            if (p.x > MAP_W) {
+                p.x = -50;
+                p.y = Math.random() * 15 * TILE;
+            }
+        });
     }
 
     let activeNPC = null;
@@ -717,24 +809,146 @@ brecho: {
     function closeDialog() { document.getElementById("dialog-overlay").style.display = "none"; }
 
     // ==========================================================================
-    // 5. RENDERIZAÇÃO
+    // 5. RENDERIZAÇÃO (RE-DISEGNADO COM QUALIDADE VISUAL DE ALTO NÍVEL)
     // ==========================================================================
     function drawSign(x, y, text) {
-        ctx.font = "bold 12px 'Courier New'";
+        ctx.save();
+        ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 3;
+
+        ctx.font = "bold 11px 'Courier New'";
         let textW = ctx.measureText(text).width;
         let boxW = Math.max(textW + 16, 60); 
-        let offset = (boxW - 60) / 2; // Centraliza a placa no NPC
+        let offset = (boxW - 60) / 2;
         
-        ctx.fillStyle = "#78350f"; ctx.fillRect(x - offset, y, boxW, 20); 
-        ctx.fillStyle = "#d97706"; ctx.fillRect(x - offset + 2, y + 2, boxW - 4, 16);
-        ctx.fillStyle = "#451a03"; ctx.fillRect(x + 25, y + 20, 10, 15);
+        // Estilo placa de madeira entalhada tradicional de ilhas retro
+        ctx.fillStyle = "#5c2d16"; 
+        ctx.fillRect(x - offset, y, boxW, 20); 
+        ctx.fillStyle = "#a16207"; 
+        ctx.fillRect(x - offset + 2, y + 2, boxW - 4, 16);
+        ctx.fillStyle = "#3b1e0f"; 
+        ctx.fillRect(x + 25, y + 20, 10, 15);
         
         ctx.fillStyle = "#fff"; ctx.textAlign = "center";
-        ctx.fillText(text, x + 30, y + 14);
-        ctx.textAlign = "left";
+        ctx.fillText(text, x + 30 - offset + (boxW/2), y + 14);
+        ctx.restore();
     }
 
+    // Desenha decorações internas baseadas no tipo de sala (Mapeamento do TILE 3)
+    function drawIndoorDecor(tx, ty, r, c) {
+        // Encontra em qual faixa de sala estamos para desenhar o background decorativo correspondente
+        ctx.save();
+        
+        // Chão de Madeira das Salas
+        ctx.fillStyle = "#b45309";
+        ctx.fillRect(tx, ty, TILE, TILE);
+        ctx.fillStyle = "#78350f";
+        ctx.fillRect(tx, ty + TILE - 2, TILE, 2); // Textura de tábuas
+
+        // Identifica sala por faixas de colunas/linhas para criar cenários temáticos
+        if (r >= 17 && r <= 24) { // TI (c: 22-29), Secretaria (10-20), Diretoria (50-60), Brechó (41-48)
+            if (c >= 22 && c <= 29) { // Sala de TI: Servidores e computadores
+                if (r === 18 && c % 2 === 0) {
+                    ctx.fillStyle = "#334155"; ctx.fillRect(tx + 5, ty + 5, 30, 25);
+                    ctx.fillStyle = "#10b981"; ctx.fillRect(tx + 8, ty + 10, 4, 4); // Leds ativos
+                    ctx.fillStyle = "#38bdf8"; ctx.fillRect(tx + 18, ty + 20, 12, 6); // Monitor
+                }
+            } else if (c >= 10 && c <= 20) { // Secretaria: Arquivos e guias
+                if (r === 18 && c % 3 === 0) {
+                    ctx.fillStyle = "#64748b"; ctx.fillRect(tx + 8, ty + 2, 24, 30);
+                    ctx.fillStyle = "#94a3b8"; ctx.fillRect(tx + 12, ty + 8, 16, 4); // Gavetas
+                    ctx.fillRect(tx + 12, ty + 16, 16, 4);
+                }
+            } else if (c >= 50 && c <= 60) { // Diretoria: Mesa executiva, plantas e quadros
+                if (r === 18 && c === 52) { // Vaso de planta
+                    ctx.fillStyle = "#b45309"; ctx.fillRect(tx + 12, ty + 20, 16, 16);
+                    ctx.fillStyle = "#047857"; ctx.beginPath(); ctx.arc(tx + 20, ty + 12, 10, 0, Math.PI * 2); ctx.fill();
+                }
+                if (r === 18 && c === 56) { // Quadro de honra na parede
+                    ctx.fillStyle = "#facc15"; ctx.fillRect(tx + 10, ty + 2, 20, 16);
+                    ctx.fillStyle = "#fff"; ctx.fillRect(tx + 12, ty + 4, 16, 12);
+                    ctx.fillStyle = "#000"; ctx.fillRect(tx + 15, ty + 8, 10, 2);
+                }
+            } else if (c >= 41 && c <= 48) { // Brechó: Roupas suspensas e caixas
+                if (r === 18 && c % 2 === 0) {
+                    ctx.fillStyle = "#475569"; ctx.fillRect(tx + 2, ty + 10, 36, 6); // Arara
+                    ctx.fillStyle = "#ec4899"; ctx.fillRect(tx + 8, ty + 16, 8, 18); // Cabides com roupas
+                    ctx.fillStyle = "#3b82f6"; ctx.fillRect(tx + 22, ty + 16, 8, 18);
+                }
+            }
+        } else if (r >= 29 && r <= 36) { // Cozinha (10-20), Reforço (50-60), Mkt (22-29), Refeitório (41-48)
+            if (c >= 10 && c <= 20) { // Cozinha: Fogões e pias
+                if (r === 30 && c % 3 === 0) {
+                    ctx.fillStyle = "#cbd5e1"; ctx.fillRect(tx + 4, ty + 6, 32, 28);
+                    ctx.fillStyle = "#ef4444"; ctx.fillRect(tx + 8, ty + 10, 8, 6); // Fogo simulado
+                }
+            } else if (c >= 50 && c <= 60) { // Reforço: Carteiras e Quadro Negro
+                if (r === 30 && c === 55) { // Quadro Negro gigante central
+                    ctx.fillStyle = "#0f172a"; ctx.fillRect(tx - 20, ty + 2, 80, 24);
+                    ctx.strokeStyle = "#b45309"; ctx.lineWidth = 3; ctx.strokeRect(tx - 20, ty + 2, 80, 24);
+                    ctx.fillStyle = "#fff"; ctx.font = "8px Arial"; ctx.fillText("2+2=4", tx + 5, ty + 15);
+                }
+            } else if (c >= 22 && c <= 29) { // Marketing: Painel criativo e banners
+                if (r === 30 && c % 2 === 0) {
+                    ctx.fillStyle = "#f97316"; ctx.fillRect(tx + 6, ty + 4, 28, 22); // Painel de post-it
+                    ctx.fillStyle = "#fef08a"; ctx.fillRect(tx + 10, ty + 8, 6, 6);
+                    ctx.fillStyle = "#67e8f9"; ctx.fillRect(tx + 20, ty + 14, 6, 6);
+                }
+            } else if (c >= 41 && c <= 48) { // Refeitório: Mesas de alimentação
+                if (r % 2 === 0 && c % 2 === 0) {
+                    ctx.fillStyle = "#f59e0b"; ctx.fillRect(tx + 5, ty + 5, 30, 20); // Mesa
+                    ctx.fillStyle = "#78350f"; ctx.fillRect(tx + 12, ty + 25, 16, 10); // Bancada
+                }
+            }
+        } else if (r >= 41 && r <= 48) { // Financeiro (10-20), Artes (50-60)
+            if (c >= 10 && c <= 20) { // Financeiro: Cofre e Calculadoras
+                if (r === 42 && c === 15) {
+                    ctx.fillStyle = "#475569"; ctx.fillRect(tx + 8, ty + 5, 24, 28); // Cofre
+                    ctx.fillStyle = "#94a3b8"; ctx.beginPath(); ctx.arc(tx + 20, ty + 18, 6, 0, Math.PI * 2); ctx.fill(); // Segredo
+                }
+            } else if (c >= 50 && c <= 60) { // Artes: Telas de pintura e pincéis
+                if (r === 42 && c % 3 === 0) {
+                    ctx.fillStyle = "#d97706"; ctx.fillRect(tx + 12, ty + 15, 16, 20); // Cavalete
+                    ctx.fillStyle = "#f8fafc"; ctx.fillRect(tx + 6, ty + 5, 28, 16); // Tela branca
+                    ctx.fillStyle = "#ec4899"; ctx.beginPath(); ctx.arc(tx + 15, ty + 12, 4, 0, Math.PI * 2); ctx.fill(); // Mancha artística
+                }
+            }
+        } else if (r >= 53 && r <= 60) { // Dança (20-30), Teatro (40-50), Saúde (5-15), Biblioteca (55-65)
+            if (c >= 20 && c <= 30) { // Dança: Espelhos e barras
+                if (r === 54) {
+                    ctx.fillStyle = "#e2e8f0"; ctx.fillRect(tx, ty + 2, TILE, 16); // Espelho corrido
+                    ctx.fillStyle = "#b45309"; ctx.fillRect(tx, ty + 22, TILE, 3); // Barra de madeira
+                }
+            } else if (c >= 40 && c <= 50) { // Teatro: Ribalta e Cortinas vermelhas
+                if (r === 54) {
+                    ctx.fillStyle = "#991b1b"; ctx.fillRect(tx, ty, TILE, 32); // Cortinado denso vermelho
+                    ctx.fillStyle = "#facc15"; ctx.beginPath(); ctx.arc(tx + 20, ty + 36, 4, 0, Math.PI*2); ctx.fill(); // Refletores
+                }
+            } else if (c >= 5 && c <= 15) { // Saúde: Maca médica acolhedora e divisórias
+                if (r === 54 && c === 10) {
+                    ctx.fillStyle = "#f1f5f9"; ctx.fillRect(tx + 4, ty + 10, 32, 16); // Maca
+                    ctx.fillStyle = "#38bdf8"; ctx.fillRect(tx + 4, ty + 6, 10, 4); // Travesseiro azul suave
+                }
+            } else if (c >= 55 && c <= 65) { // Biblioteca: Estantes de livros empilhados
+                if (r === 54 && c % 2 === 0) {
+                    ctx.fillStyle = "#78350f"; ctx.fillRect(tx + 4, ty + 2, 32, 36); // Estante
+                    ctx.fillStyle = "#3b82f6"; ctx.fillRect(tx + 8, ty + 6, 6, 8); // Livros coloridos
+                    ctx.fillStyle = "#ef4444"; ctx.fillRect(tx + 14, ty + 6, 6, 8);
+                    ctx.fillStyle = "#10b981"; ctx.fillRect(tx + 22, ty + 6, 6, 8);
+                }
+            }
+        }
+        ctx.restore();
+    }
+
+    // FUNÇÃO ORIGINAL DE DESENHO DE PERSONAGENS DO SEU CÓDIGO FONTE (Efeito Respiração adicionado de forma dinâmica e sutil)
     function drawCharacter(x, y, skin, shirt, pants, hair, hStyle, glasses, isHero) {
+        ctx.save();
+        // Adiciona um micro-bounce sutil de respiração para simular vida mesmo parado
+        let breathe = !isHero ? Math.sin(Date.now() / 350 + x) * 0.4 : 0;
+        
+        ctx.translate(0, breathe);
         ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(x+12, y+36, 12, 4, 0, 0, Math.PI*2); ctx.fill();
         ctx.lineWidth = 2; ctx.strokeStyle = "#111";
 
@@ -756,7 +970,15 @@ brecho: {
         }
 
         ctx.fillStyle = skin; ctx.fillRect(x+6, y+2, 12, 12); ctx.strokeRect(x+6, y+2, 12, 12);
-        ctx.fillStyle = "#000"; ctx.fillRect(x+8, y+7, 2, 3); ctx.fillRect(x+14, y+7, 2, 3);
+        
+        // Simula efeito de piscar de olhos ocasionalmente para humanizar
+        let isBlinking = (Math.floor(Date.now() / 2000) % 2 === 0) && (Math.floor(Date.now() / 100) % 15 === 0);
+        if (isBlinking) {
+            ctx.fillStyle = "#111";
+            ctx.fillRect(x+8, y+8, 2, 1); ctx.fillRect(x+14, y+8, 2, 1);
+        } else {
+            ctx.fillStyle = "#000"; ctx.fillRect(x+8, y+7, 2, 3); ctx.fillRect(x+14, y+7, 2, 3);
+        }
 
         if(glasses) {
             ctx.strokeStyle = "#4b5563"; ctx.lineWidth = 1;
@@ -775,32 +997,94 @@ brecho: {
             ctx.fillRect(x+5, y, 14, 4);
             ctx.beginPath(); ctx.arc(x+12, y, 4, 0, Math.PI*2); ctx.fill(); 
         }
+        ctx.restore();
     }
 
     function draw() {
-        ctx.fillStyle = "#1a1a1a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#11141a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.save();
         ctx.translate(Math.floor(-camX), Math.floor(-camY));
 
         const c1 = Math.max(0, Math.floor(camX / TILE)), c2 = Math.min(COLS - 1, Math.floor((camX + canvas.width) / TILE));
         const r1 = Math.max(0, Math.floor(camY / TILE)), r2 = Math.min(ROWS - 1, Math.floor((camY + canvas.height) / TILE));
 
+        // Efeito de ondulação da grama pelo vento de forma unificada
+        let windGrassOffset = Math.sin(Date.now() / 600) * 2;
+
         for (let r = r1; r <= r2; r++) {
             for (let c = c1; c <= c2; c++) {
                 let tx = c * TILE, ty = r * TILE, type = map[r][c];
-                if (type === 0) { ctx.fillStyle = "#65a30d"; ctx.fillRect(tx, ty, TILE, TILE); ctx.fillStyle = "#4d7c0f"; ctx.fillRect(tx+15, ty+15, 4, 4); }
-                else if (type === 1) { ctx.fillStyle = "#334155"; ctx.fillRect(tx, ty, TILE, TILE); ctx.fillStyle = "#1e293b"; ctx.fillRect(tx, ty, TILE, 10); }
-                else if (type === 2) { ctx.fillStyle = "#d97706"; ctx.fillRect(tx, ty, TILE, TILE); } 
-                else if (type === 3) { ctx.fillStyle = "#fef08a"; ctx.fillRect(tx, ty, TILE, TILE); ctx.fillStyle = "#facc15"; ctx.fillRect(tx, ty, 2, TILE); }
-                else if (type === 4) { ctx.fillStyle = "#0ea5e9"; ctx.fillRect(tx, ty, TILE, TILE); let w=Math.sin(Date.now()/300+c)*2; ctx.fillStyle="#38bdf8"; ctx.fillRect(tx+5, ty+10+w, 20, 3); }
+                
+                if (type === 0) { 
+                    // Gramado natural texturizado
+                    ctx.fillStyle = (r+c) % 2 === 0 ? "#558b2f" : "#689f38"; 
+                    ctx.fillRect(tx, ty, TILE, TILE); 
+                    
+                    // Pequenas flores e arbustos decorativos dispersos
+                    if ((r * c) % 17 === 0) {
+                        ctx.fillStyle = "#fef08a"; // Miolo da flor
+                        ctx.fillRect(tx + 12 + windGrassOffset, ty + 12, 3, 3);
+                        ctx.fillStyle = "#f87171"; // Pétala
+                        ctx.fillRect(tx + 10 + windGrassOffset, ty + 10, 2, 2);
+                        ctx.fillRect(tx + 15 + windGrassOffset, ty + 10, 2, 2);
+                    } else if ((r * c) % 23 === 0) {
+                        // Pequenas folhas secas ou ramos caídos
+                        ctx.fillStyle = "#2e7d32";
+                        ctx.fillRect(tx + 8 + windGrassOffset, ty + 20, 5, 2);
+                    }
+                }
+                else if (type === 1) { 
+                    // Paredes e fachada exterior da escola com profundidade e telhado
+                    ctx.fillStyle = "#1e293b"; ctx.fillRect(tx, ty, TILE, TILE); 
+                    
+                    // Sombras de profundidade e beiral
+                    ctx.fillStyle = "#0f172a"; ctx.fillRect(tx, ty, TILE, 8); 
+                    
+                    // Beiral estético de telha no topo
+                    ctx.fillStyle = "#f87171"; ctx.fillRect(tx, ty - 6, TILE, 6);
+                    ctx.fillStyle = "#dc2626"; ctx.fillRect(tx, ty - 4, TILE, 2);
+                    
+                    // Janelas detalhadas
+                    if (c % 2 === 0) {
+                        ctx.fillStyle = "#38bdf8"; ctx.fillRect(tx + 10, ty + 12, 20, 16);
+                        ctx.fillStyle = "#e0f2fe"; ctx.fillRect(tx + 12, ty + 14, 6, 12); // Reflexo do sol nas janelas
+                    }
+                }
+                else if (type === 2) { 
+                    // Caminhos texturizados orgânicos com pequenas bordas de pedra
+                    ctx.fillStyle = "#c27829"; ctx.fillRect(tx, ty, TILE, TILE); 
+                    
+                    // Variações e imperfeições estéticas na estrada (terra e marcas de uso)
+                    ctx.fillStyle = "#a15c1b";
+                    if ((r+c)%3 === 0) ctx.fillRect(tx + 5, ty + 8, 4, 4);
+                    if ((r+c)%5 === 0) ctx.fillRect(tx + 22, ty + 18, 6, 3);
+                    
+                    // Pequenas pedrinhas cinzas integradas nas margens do caminho
+                    if ((r * c) % 19 === 0) {
+                        ctx.fillStyle = "#94a3b8";
+                        ctx.beginPath(); ctx.ellipse(tx + 15, ty + 15, 4, 2, 0, 0, Math.PI*2); ctx.fill();
+                    }
+                } 
+                else if (type === 3) { 
+                    // Interior das salas decoradas com objetos ricos
+                    drawIndoorDecor(tx, ty, r, c);
+                }
+                else if (type === 4) { 
+                    // Água com ondas e brilhos suaves
+                    ctx.fillStyle = "#0284c7"; ctx.fillRect(tx, ty, TILE, TILE); 
+                    let w = Math.sin(Date.now() / 400 + c) * 3; 
+                    ctx.fillStyle = "#38bdf8"; 
+                    ctx.fillRect(tx + 5, ty + 12 + w, 22, 3); 
+                }
             }
         }
 
+        // Desenho das placas de identificação com visualização aprimorada
         for(let key in npcLocations) {
-            drawSign(npcLocations[key].x - 15, npcLocations[key].y - 30, questsData[key].room);
+            drawSign(npcLocations[key].x - 15, npcLocations[key].y - 32, questsData[key].room);
         }
 
-        // Sistema Genérico e Robusto para desenhar múltiplos NPCs alinhados horizontalmente em qualquer quantidade
+        // Desenhar múltiplos NPCs preservando seus bounces e espaçamentos individuais originais
         for (let key in npcLocations) {
             let loc = npcLocations[key];
             let count = loc.npcs.length;
@@ -820,6 +1104,30 @@ brecho: {
 
         let bob = (keys.up || keys.down || keys.left || keys.right) ? Math.sin(Date.now() / 80) * 3 : 0;
         drawCharacter(player.x, player.y + bob, "#ffdbac", "#18181b", "#18181b", "#292524", 3, false, true);
+
+        // Renderização dos elementos estéticos e partículas do ambiente
+        ctx.save();
+        leafParticles.forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+        });
+
+        butterflyParticles.forEach(p => {
+            ctx.fillStyle = p.color;
+            let wing = Math.sin(p.wingCycle) * 3;
+            ctx.fillRect(p.x - wing, p.y, 3, 3);
+            ctx.fillRect(p.x + 1 + wing, p.y, 3, 3);
+        });
+
+        birdParticles.forEach(p => {
+            ctx.fillStyle = "#334155";
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + 5, p.y - 3 + p.wing * 3);
+            ctx.lineTo(p.x + 10, p.y);
+            ctx.stroke();
+        });
+        ctx.restore();
 
         ctx.restore();
     }
@@ -844,6 +1152,7 @@ brecho: {
         }, 500);
 
         initMap();
+        initAmbientParticles();
         setupInput();
         requestAnimationFrame(loop);
     }
